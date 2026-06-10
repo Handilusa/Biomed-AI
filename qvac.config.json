@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "plugins": [
+    "@qvac/llm-llamacpp",
+    "@qvac/embed-llamacpp",
+    "@qvac/rag"
+  ],
+  "settings": {
+    "modelDir": "./models",
+    "hardwareAcceleration": "vulkan"
+  }
+}

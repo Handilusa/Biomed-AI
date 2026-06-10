@@ -1,0 +1,33 @@
+{
+  "name": "edge-medtech-copilot",
+  "version": "0.1.0",
+  "description": "100% local multi-agent AI assistant for biomedical equipment technicians, powered by QVAC MedPsy models",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "ingest": "tsx scripts/ingest-docs.ts",
+    "demo:log": "tsx src/demo/runner.ts",
+    "download:models": "tsx scripts/download-models.ts"
+  },
+  "dependencies": {
+    "@qvac/rag": "latest",
+    "@qvac/sdk": "latest",
+    "@types/multer": "^2.1.0",
+    "express": "^5.1.0",
+    "multer": "^2.1.1",
+    "pdf-parse": "^1.1.1",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

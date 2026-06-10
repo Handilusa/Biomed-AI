@@ -1,0 +1,27 @@
+{
+  "_comment": "List of non-AI remote services used by this project. Required by QVAC Hackathon rules.",
+  "_note": "No cloud AI services are used. All inference runs 100% locally via QVAC SDK.",
+  "services": [
+    {
+      "name": "HuggingFace",
+      "url": "https://huggingface.co/qvac",
+      "purpose": "One-time download of GGUF model files (MedPsy-4B, embedding model)",
+      "required": false,
+      "usedForAI": false
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "purpose": "Source code hosting and distribution",
+      "required": false,
+      "usedForAI": false
+    },
+    {
+      "name": "Google Fonts",
+      "url": "https://fonts.googleapis.com",
+      "purpose": "Typography (Inter font family) for web UI; falls back to system fonts if offline",
+      "required": false,
+      "usedForAI": false
+    }
+  ]
+}

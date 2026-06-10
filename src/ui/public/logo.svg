@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Definitions for neon glow -->
+  <defs>
+    <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <!-- Primary neon blur -->
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="blur2"/>
+      <!-- Merge the blurs with the sharp core -->
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark premium container background -->
+  <rect width="100" height="100" rx="22" fill="#081425" />
+
+  <!-- Logo Graphics Group with Neon Glow -->
+  <g filter="url(#neon-glow)" stroke="#57f1db" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Continuous Outline: Brain & Cross -->
+    <path d="M 55,25 
+             C 55,17 60,13 65,13 
+             C 70,13 75,17 75,25 
+             L 75,36
+             C 75,36 82,36 86,36
+             C 91,36 95,40 95,45
+             C 95,50 91,54 86,54
+             L 75,54
+             L 75,65
+             C 75,73 70,77 65,77
+             C 60,77 55,73 55,65
+             C 55,73 50,81 42,85
+             C 34,89 24,85 20,77
+             C 16,69 20,59 28,55
+             C 18,51 14,41 18,31
+             C 22,21 32,17 42,21
+             C 50,25 55,29 55,37" />
+
+    <!-- Inner Cerebrum Folds & Loops -->
+    <path d="M 55,37
+             C 48,33 40,35 36,43
+             C 32,51 42,57 48,51
+             C 52,47 55,47 55,55" />
+
+    <path d="M 36,43
+             C 28,41 24,47 28,55" />
+  </g>
+</svg>

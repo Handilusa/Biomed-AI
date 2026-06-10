@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html class="dark" lang="en" data-lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>BioMed AI — Premium Edge AI Copilot for Biomedical Technicians</title>
+  <meta name="description" content="100% local, privacy-first AI assistant for biomedical equipment technicians. Powered by QVAC MedPsy models running entirely on-device.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#ffdad6",
+            "primary": "#57f1db",
+            "tertiary": "#d1d9f3",
+            "surface-container-high": "#1f2a3c",
+            "surface-variant": "#2a3548",
+            "surface-container-highest": "#2a3548",
+            "outline-variant": "#3c4a46",
+            "primary-container": "#2dd4bf",
+            "surface-dim": "#081425",
+            "on-primary-fixed": "#00201c",
+            "outline": "#859490",
+            "surface-container-lowest": "#040e1f",
+            "on-secondary-container": "#a7b6cc",
+            "on-primary-container": "#00574d",
+            "on-primary": "#003731",
+            "on-surface-variant": "#bacac5",
+            "surface-container": "#152031",
+            "on-secondary-fixed-variant": "#39485a",
+            "inverse-surface": "#d8e3fb",
+            "secondary-fixed-dim": "#b9c8de",
+            "primary-fixed-dim": "#3cddc7",
+            "secondary-container": "#39485a",
+            "tertiary-fixed": "#dae2fd",
+            "primary-fixed": "#62fae3",
+            "on-secondary": "#233143",
+            "surface-tint": "#3cddc7",
+            "inverse-primary": "#006b5f",
+            "on-tertiary-container": "#444c62",
+            "secondary": "#b9c8de",
+            "surface-container-low": "#111c2d",
+            "on-error": "#690005",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#283044",
+            "inverse-on-surface": "#263143",
+            "error-container": "#93000a",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "error": "#ffb4ab",
+            "secondary-fixed": "#d4e4fa",
+            "on-primary-fixed-variant": "#005047",
+            "surface-bright": "#2f3a4c",
+            "background": "#081425",
+            "on-secondary-fixed": "#0d1c2d",
+            "on-surface": "#d8e3fb",
+            "tertiary-container": "#b6bdd7",
+            "on-tertiary-fixed": "#131b2e",
+            "on-background": "#d8e3fb",
+            "surface": "#081425"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "md": "1rem",
+            "base": "4px",
+            "margin": "1.5rem",
+            "gutter": "1rem",
+            "xl": "2.5rem",
+            "sm": "0.5rem",
+            "xs": "0.25rem",
+            "lg": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Geist"],
+            "status-lg": ["Geist"],
+            "body-lg": ["Geist"],
+            "body-md": ["Geist"],
+            "headline-lg": ["Geist"],
+            "headline-md": ["Geist"],
+            "label-mono": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["24px", { "lineHeight": "30px", "fontWeight": "600" }],
+            "status-lg": ["18px", { "lineHeight": "24px", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body class="bg-background text-on-background flex flex-col h-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container font-body-md">
+
+  <!-- ─── Disclaimer Banner ─── -->
+  <div class="bg-gradient-to-r from-error/10 to-primary/5 border-b border-outline-variant py-2 px-margin text-xs flex items-center justify-between transition-all" id="disclaimer-banner">
+    <div class="flex items-center gap-2 max-w-7xl mx-auto w-full">
+      <span class="material-symbols-outlined text-sm text-primary">health_and_safety</span>
+      <span class="text-on-surface-variant flex-1" data-i18n="disclaimer_banner">
+        Field reference tool. Always verify service logic with official manufacturer specifications.
+      </span>
+      <button class="text-on-surface-variant hover:text-on-surface text-lg cursor-pointer px-1" id="dismiss-disclaimer" aria-label="Dismiss">&times;</button>
+    </div>
+  </div>
+
+  <!-- ─── Overall Application Wrapper ─── -->
+  <div class="flex-1 flex overflow-hidden w-full relative">
+
+    <!-- ─── Persistent Sidebar Navigation ─── -->
+    <aside class="w-[280px] h-full border-r border-outline-variant bg-surface-container-low flex flex-col py-lg shrink-0 z-40 hidden md:flex transition-all duration-300 overflow-y-auto overflow-x-hidden" id="sidebar">
+      
+      <!-- Brand Header -->
+      <div class="px-margin mb-xl">
+        <div class="flex items-center gap-md mb-md">
+          <div class="w-10 h-10 rounded bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+            <img src="/logo.svg" alt="BioMed AI Logo" class="w-7 h-7 object-contain" />
+          </div>
+          <div>
+            <h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">BioMed AI</h1>
+            <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mt-1">Precision Diagnostic v4.2</p>
+          </div>
+        </div>
+        <!-- CTA New Session -->
+        <button class="w-full bg-primary text-on-primary font-label-mono text-label-mono uppercase rounded py-3 px-4 flex items-center justify-center gap-sm active:brightness-125 transition-all hover:bg-primary-fixed-dim glow-mint" id="sidebar-new-session">
+          <span class="material-symbols-outlined text-[18px]">add</span>
+          <span data-i18n="new_session">New Session</span>
+        </button>
+      </div>
+
+      <!-- Main Navigation Links -->
+      <nav class="flex-1 flex flex-col gap-1 px-sm">
+        <button class="nav-tab-btn flex items-center gap-md px-4 py-3 font-body-md text-body-md rounded-r transition-all duration-200 text-primary bg-surface-container-highest border-l-4 border-primary text-left" data-target="view-dashboard">
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </button>
+        <button class="nav-tab-btn flex items-center gap-md px-4 py-3 font-body-md text-body-md rounded-r transition-all duration-200 text-on-surface-variant hover:bg-surface-container border-l-4 border-transparent hover:border-outline-variant text-left" data-target="view-repair">
+          <span class="material-symbols-outlined text-[20px]">precision_manufacturing</span>
+          <span data-i18n="equipment_repair">Equipment Repair</span>
+        </button>
+        <button class="nav-tab-btn flex items-center gap-md px-4 py-3 font-body-md text-body-md rounded-r transition-all duration-200 text-on-surface-variant hover:bg-surface-container border-l-4 border-transparent hover:border-outline-variant text-left" data-target="view-manuals">
+          <span class="material-symbols-outlined text-[20px]">menu_book</span>
+          <span data-i18n="manuals">Manuals</span>
+        </button>
+        <button class="nav-tab-btn flex items-center gap-md px-4 py-3 font-body-md text-body-md rounded-r transition-all duration-200 text-on-surface-variant hover:bg-surface-container border-l-4 border-transparent hover:border-outline-variant text-left" data-target="view-history">
+          <span class="material-symbols-outlined text-[20px]">history</span>
+          <span data-i18n="repair_history">Repair History</span>
+        </button>
+      </nav>
+
+      <!-- System Status Indicators (Legacy compatibility block) -->
+      <div class="px-margin py-md border-t border-outline-variant/50 flex flex-col gap-sm">
+        <h2 class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-widest" data-i18n="system_status">System Status</h2>
+        <div class="flex flex-col gap-2">
+          <!-- Models Status -->
+          <div class="flex items-center justify-between p-2 rounded bg-surface-container border border-outline-variant/50" id="status-models">
+            <span class="font-label-mono text-[11px] text-on-surface-variant" data-i18n="models">Models</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <div class="status-card__indicator status-card__indicator--loading w-2 h-2 rounded-full"></div>
+              <span class="font-label-mono text-[10px] text-on-surface truncate" id="models-status">Loading...</span>
+            </div>
+          </div>
+          <!-- RAG Status -->
+          <div class="flex items-center justify-between p-2 rounded bg-surface-container border border-outline-variant/50" id="status-rag">
+            <span class="font-label-mono text-[11px] text-on-surface-variant" data-i18n="knowledge_base">Knowledge Base</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <div class="status-card__indicator status-card__indicator--loading w-2 h-2 rounded-full"></div>
+              <span class="font-label-mono text-[10px] text-on-surface truncate" id="rag-status">Loading...</span>
+            </div>
+          </div>
+          <!-- Server Status -->
+          <div class="flex items-center justify-between p-2 rounded bg-surface-container border border-outline-variant/50" id="status-server">
+            <span class="font-label-mono text-[11px] text-on-surface-variant" data-i18n="server">Server</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <div class="status-card__indicator status-card__indicator--loading w-2 h-2 rounded-full"></div>
+              <span class="font-label-mono text-[10px] text-on-surface truncate" id="server-status">Connecting...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & Controls Block -->
+      <div class="px-margin py-md border-t border-outline-variant/50 flex flex-col gap-md">
+        <!-- Language toggle -->
+        <div>
+          <h2 class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-widest mb-2" data-i18n="ui_language">UI Language</h2>
+          <div class="lang-toggle flex bg-surface-container border border-outline-variant p-0.5 rounded">
+            <button class="lang-toggle__btn lang-toggle__btn--active flex-1 text-center py-1 rounded text-xs font-semibold" id="lang-en" data-lang="en">EN</button>
+            <button class="lang-toggle__btn flex-1 text-center py-1 rounded text-xs font-semibold" id="lang-es" data-lang="es">ES</button>
+          </div>
+        </div>
+        
+        <!-- Translation details -->
+        <div class="flex flex-col gap-2">
+          <div>
+            <label class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-widest block mb-1" for="response-language-select" data-i18n="response_language">Response Language</label>
+            <select id="response-language-select" class="w-full bg-surface-container border border-outline-variant rounded p-1 text-xs text-on-surface focus:outline-none focus:border-primary/50 cursor-pointer">
+              <option value="auto">Auto</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-widest block mb-1" for="evidence-mode-select" data-i18n="evidence_mode">Evidence Mode</label>
+            <select id="evidence-mode-select" class="w-full bg-surface-container border border-outline-variant rounded p-1 text-xs text-on-surface focus:outline-none focus:border-primary/50 cursor-pointer">
+              <option value="original">Original Only</option>
+              <option value="translated">Translated Only</option>
+              <option value="both">Original + Translated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="mt-auto px-margin pt-md border-t border-outline-variant/50">
+        <div class="flex items-center gap-md mb-2">
+          <span class="w-2 h-2 rounded-full bg-primary animate-pulse-glow"></span>
+          <span class="font-label-mono text-[10px] text-primary" data-i18n="privacy_badge">All AI runs locally — zero cloud</span>
+        </div>
+        <div class="flex items-center gap-sm mt-3 pt-2 border-t border-outline-variant/30">
+          <div class="w-8 h-8 rounded bg-surface-container-highest border border-outline flex items-center justify-center shrink-0 cursor-pointer hover:border-primary transition-colors">
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">person</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-mono text-label-mono text-on-surface leading-none">J. Doe</span>
+            <span class="text-[10px] text-primary mt-1">Level 3 Tech</span>
+          </div>
+        </div>
+        <span class="block text-[10px] text-on-surface-variant/40 mt-3 mb-2">v0.1.0 • QVAC Hackathon 2026</span>
+      </div>
+    </aside>
+
+    <!-- ─── Main Content Canvas Area ─── -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+      <!-- ─── Top Navigation Bar ─── -->
+      <header class="h-16 w-full border-b border-outline-variant bg-surface-dim flex items-center justify-between px-margin shrink-0 z-10">
+        
+        <!-- Brand/Mobile Menu Button -->
+        <div class="flex items-center gap-md">
+          <button class="md:hidden text-on-surface-variant hover:text-primary transition-colors" id="toggle-sidebar" aria-label="Toggle sidebar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <span class="font-headline-md text-headline-md text-primary tracking-tighter font-bold" id="topbar-view-title">BioMed Sentinel</span>
+        </div>
+
+        <!-- Links (Web) -->
+        <nav class="hidden md:flex items-center gap-xl ml-md h-full">
+          <a class="text-on-surface-variant hover:text-primary transition-colors font-label-mono text-label-mono" href="#" id="open-models-modal">Models</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors font-label-mono text-label-mono" href="#" onclick="document.querySelector('[data-target=view-manuals]').click()">Knowledge Base</a>
+        </nav>
+
+        <!-- Trailing Actions -->
+        <div class="flex items-center gap-md">
+          <!-- Search Bar -->
+          <div class="relative hidden sm:block group">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] group-focus-within:text-primary transition-colors">search</span>
+            <input class="bg-surface-container border border-outline-variant rounded pl-10 pr-4 py-1.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all w-64 placeholder:text-on-surface-variant/50" placeholder="Search manuals, codes..." type="text" id="topbar-search-input"/>
+          </div>
+          <!-- Notifications -->
+          <button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-colors relative" id="topbar-notifications-btn" title="System Status">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="absolute top-[2px] right-[2px] w-[6px] h-[6px] rounded-full bg-primary animate-pulse"></span>
+          </button>
+          <!-- Clear Chat Action -->
+          <button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-colors" id="clear-chat-trigger" title="Clear chat" data-i18n-title="clear_chat">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/>
+            </svg>
+          </button>
+          <!-- Help Dialog -->
+          <button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-colors hidden sm:block" id="topbar-help-btn" title="Help & Support">
+            <span class="material-symbols-outlined">help_outline</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ─── SPA View Wrapper ─── -->
+      <div class="flex-1 overflow-hidden relative w-full h-full">
+
+        <!-- ═════════════════════════════════════════
+             VIEW 1: DASHBOARD
+             ═════════════════════════════════════════ -->
+        <div class="app-view h-full overflow-y-auto p-margin" id="view-dashboard">
+          <div class="max-w-[1280px] mx-auto">
+            
+            <!-- Page Title Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-xl">
+              <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface mb-1" data-i18n="dashboard_title">Local Edge System</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant" data-i18n="dashboard_desc">All critical diagnostic models are loaded and functioning nominally.</p>
+              </div>
+              <div class="inline-flex items-center gap-1.5 bg-primary/10 text-primary font-label-mono text-label-mono rounded-full px-3 py-1.5 border border-primary/20 shadow-[0_0_10px_rgba(87,241,219,0.1)] self-start sm:self-center">
+                <span class="material-symbols-outlined text-[16px] fill-icon">shield_lock</span>
+                OFFLINE NODE SECURE
+              </div>
+            </div>
+
+            <!-- Bento Grid Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+              
+              <!-- Left Bento Card: Neural Engine Status (Col 8) -->
+              <section class="md:col-span-8 bg-surface-container-low border border-outline-variant rounded-lg p-lg relative overflow-hidden flex flex-col justify-between min-h-[320px]">
+                <div class="absolute right-0 top-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
+                
+                <div class="relative z-10 flex items-center justify-between mb-lg border-b border-outline-variant/30 pb-sm">
+                  <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[16px]">psychology</span>
+                    Neural Engine Status
+                  </h3>
+                  <span id="node-memory-status" class="font-label-mono text-label-mono text-primary animate-pulse">RAM: -- GB</span>
+                </div>
+
+                <!-- Neural Engine Visualizer -->
+                <div class="relative flex-1 flex items-center justify-center my-md h-[100px] overflow-hidden rounded bg-surface-container/30 border border-outline-variant/30">
+                  <canvas id="neural-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                  <div class="z-10 flex flex-wrap justify-center gap-sm p-sm text-center">
+                    <span class="text-xs bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                      MedPsy-4B-Q4_K_M-iMat
+                    </span>
+                    <span class="text-xs bg-secondary/10 border border-secondary/20 text-secondary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse"></span>
+                      Bergamot-NMT
+                    </span>
+                    <span class="text-xs bg-tertiary/10 border border-tertiary/20 text-tertiary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+                      QVAC-Embeddings
+                    </span>
+                    <span class="text-xs bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                      Local-OCR-Engine
+                    </span>
+                  </div>
+                </div>
+
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-gutter mt-auto">
+                  <!-- Metric 1: Models loaded -->
+                  <div class="bg-surface-container p-md rounded border border-outline-variant/50 flex flex-col gap-sm hover:border-primary/30 transition-colors">
+                    <span class="font-label-mono text-label-mono text-on-surface-variant">MODELS ACTIVE</span>
+                    <div class="flex items-baseline gap-2">
+                      <span class="font-headline-md text-headline-md text-primary" id="dash-models-count">4</span>
+                      <span class="font-body-md text-body-md text-on-surface-variant">Active</span>
+                    </div>
+                    <div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                      <div class="h-full bg-primary w-full"></div>
+                    </div>
+                  </div>
+                  <!-- Metric 2: RAG Local Storage -->
+                  <div class="bg-surface-container p-md rounded border border-outline-variant/50 flex flex-col gap-sm hover:border-primary/30 transition-colors">
+                    <span class="font-label-mono text-label-mono text-on-surface-variant">INDEXED CHUNKS</span>
+                    <div class="flex items-baseline gap-2">
+                      <span class="font-headline-md text-headline-md text-on-surface animate-pulse" id="dash-rag-chunks">0</span>
+                      <span class="font-body-md text-body-md text-on-surface-variant">Indexed</span>
+                    </div>
+                    <div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                      <div class="h-full bg-secondary w-full" id="dash-rag-progress"></div>
+                    </div>
+                  </div>
+                  <!-- Metric 3: System Uptime -->
+                  <div class="bg-surface-container p-md rounded border border-outline-variant/50 flex flex-col gap-sm hover:border-primary/30 transition-colors">
+                    <span class="font-label-mono text-label-mono text-on-surface-variant">SYSTEM UPTIME</span>
+                    <div class="flex items-baseline gap-2">
+                      <span class="font-headline-md text-headline-md text-on-surface" id="dash-uptime-val">99.9%</span>
+                    </div>
+                    <div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                      <div class="h-full bg-primary w-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Right Bento Card: Session Metrics (Col 4) -->
+              <section class="md:col-span-4 bg-surface-container-low border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm mb-sm">
+                  <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[16px]">analytics</span>
+                    Session Statistics
+                  </h3>
+                </div>
+                
+                <div class="flex-1 flex flex-col gap-sm justify-center">
+                  <div class="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant text-sm" data-i18n="queries">Queries</span>
+                    <span class="font-label-mono text-label-mono text-primary font-bold" id="dash-stat-queries">0</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant text-sm" data-i18n="avg_ttft">Avg TTFT</span>
+                    <span class="font-label-mono text-label-mono text-on-surface font-bold" id="dash-stat-ttft">—</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant text-sm" data-i18n="avg_tps">Avg TPS</span>
+                    <span class="font-label-mono text-label-mono text-on-surface font-bold" id="dash-stat-tps">—</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span class="text-on-surface-variant text-sm" data-i18n="total_tokens">Total Tokens</span>
+                    <span class="font-label-mono text-label-mono text-secondary font-bold" id="dash-stat-tokens">0</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Middle Bento Card: Pinned Library Manuals (Col 4) -->
+              <section class="md:col-span-4 bg-surface-container-low border border-outline-variant rounded-lg p-lg flex flex-col gap-md">
+                <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm mb-xs">
+                  <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[16px]">library_books</span>
+                    Pinned Library
+                  </h3>
+                  <button class="text-primary hover:text-primary-fixed-dim transition-colors" onclick="document.querySelector('[data-target=view-manuals]').click()">
+                    <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                  </button>
+                </div>
+                <!-- Pinned items container -->
+                <div class="flex flex-col gap-sm flex-1 overflow-y-auto max-h-[240px]" id="dash-pinned-manuals">
+                  <!-- Will be dynamically populated with library entries -->
+                  <div class="text-center py-6 text-on-surface-variant/50 text-xs">No indexed manuals available.</div>
+                </div>
+              </section>
+
+              <!-- Right Bento Card: Active Copilot Session Output (Col 8) -->
+              <section class="md:col-span-8 bg-surface-container-low border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+                  <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[16px]">electric_bolt</span>
+                    Active Diagnostic Session Output
+                  </h3>
+                  <span class="font-label-mono text-[10px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant/40" id="dash-session-id-badge">SESSION: READY</span>
+                </div>
+                
+                <div class="flex-1 flex flex-col justify-center my-md">
+                  <div class="bg-surface-container rounded p-md border-l-4 border-primary copilot-output flex flex-col gap-sm" id="dash-active-session-card">
+                    <div class="flex items-center gap-2 text-primary">
+                      <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                      <span class="font-label-mono text-label-mono font-bold">BioMed AI Analysis</span>
+                    </div>
+                    <p class="font-body-md text-body-md text-on-surface leading-relaxed truncate-3-lines" id="dash-latest-assistant-text">
+                      No active diagnostic analysis. Start a repair session by selecting a manual and describing the hardware failure.
+                    </p>
+                    <div class="flex items-center gap-md mt-sm pt-sm border-t border-outline-variant/30 justify-between">
+                      <div class="flex gap-md">
+                        <button class="text-primary hover:text-primary-fixed font-label-mono text-label-mono flex items-center gap-1 transition-colors text-xs" onclick="document.querySelector('[data-target=view-repair]').click()">
+                          <span class="material-symbols-outlined text-[16px]">chat</span> Go to Chat
+                        </button>
+                      </div>
+                      <span class="font-label-mono text-[9px] text-on-surface-variant/40" id="dash-latest-time-val">--:--</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════
+             VIEW 2: EQUIPMENT REPAIR (CHAT & SIDEBAR)
+             ═════════════════════════════════════════ -->
+        <div class="app-view hidden h-full flex overflow-hidden w-full" id="view-repair">
+          
+          <!-- Immersive Chat Canvas (Center & Left) -->
+          <div class="flex-1 flex flex-col h-full min-w-0 bg-background max-w-5xl mx-auto w-full relative">
+            
+            <!-- Session Header -->
+            <div class="px-margin py-md border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest/80 backdrop-blur-sm sticky top-0 z-10">
+              <div class="flex items-center gap-sm">
+                <div class="bg-primary/10 px-2 py-0.5 rounded border border-primary/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary inline-block shadow-[0_0_8px_rgba(87,241,219,0.8)] animate-pulse"></span>
+                  <span class="font-label-mono text-[10px] text-primary uppercase tracking-widest">Active Diag</span>
+                </div>
+                <h2 class="font-status-lg text-status-lg text-on-surface m-0 font-semibold" id="active-equipment-title">No Equipment Selected</h2>
+              </div>
+              <span class="font-label-mono text-[10px] text-on-surface-variant" id="chat-session-id">Session ID: #---</span>
+            </div>
+
+            <!-- Messages List Container -->
+            <div class="chat-messages flex-1 overflow-y-auto p-margin flex flex-col gap-lg" id="chat-messages">
+              
+              <!-- Welcome Screen -->
+              <div class="welcome-message flex flex-col items-center justify-center text-center py-xl px-lg max-w-[620px] m-auto" id="welcome-message">
+                <div class="welcome-message__icon mb-md animate-float"><span class="material-symbols-outlined text-[4rem] text-primary">precision_manufacturing</span></div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-sm" data-i18n="welcome_title">Biomed Field Copilot</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-xl" data-i18n="welcome_text">
+                  Local field troubleshooting for biomedical equipment. Select a manual, upload an alarm screen if needed, and get equipment-specific service guidance.
+                </p>
+                <div class="welcome-message__chips grid grid-cols-1 sm:grid-cols-2 gap-sm w-full">
+                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="The SpO2 readings on our patient monitor are showing intermittent 'probe off' errors. What should I check?">
+                    <span class="chip__icon group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">monitor_heart</span></span>
+                    <div>
+                      <h4 class="font-bold text-on-surface text-xs group-hover:text-primary transition-colors">Nellcor SpO2</h4>
+                      <p class="text-[10px] text-on-surface-variant mt-1" data-i18n="chip_spo2">SpO2 probe-off errors</p>
+                    </div>
+                  </button>
+                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="Our infusion pump shows an occlusion alarm but the line appears clear. How do I troubleshoot?">
+                    <span class="chip__icon group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">vaccines</span></span>
+                    <div>
+                      <h4 class="font-bold text-on-surface text-xs group-hover:text-primary transition-colors">Infusion Occlusion</h4>
+                      <p class="text-[10px] text-on-surface-variant mt-1" data-i18n="chip_infusion">Infusion pump occlusion</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-margin border-t border-outline-variant bg-surface pb-xl md:pb-margin shrink-0">
+              
+              <!-- Top bar selector and PDF ingestion -->
+              <div class="flex flex-wrap items-center justify-between gap-md mb-sm">
+                
+                <!-- Manual Selector -->
+                <div class="flex items-center gap-sm min-w-0 flex-1">
+                  <label for="document-select" class="font-label-mono text-[11px] text-on-surface-variant uppercase tracking-wider shrink-0" data-i18n="select_equipment">Equipment Manual:</label>
+                  <select id="document-select" class="bg-surface-container border border-outline-variant text-body-md text-on-surface rounded py-1 px-sm max-w-sm focus:outline-none focus:border-primary/50 cursor-pointer flex-1">
+                    <option value="" disabled selected data-i18n="select_equipment_placeholder">Select an equipment manual...</option>
+                  </select>
+                </div>
+
+                <!-- PDF File Upload button -->
+                <div class="flex items-center gap-xs">
+                  <input type="file" id="file-upload-input" accept=".pdf,.txt,.md" style="display: none;">
+                  <button class="px-3 py-1 bg-surface-container border border-outline-variant text-on-surface-variant font-label-mono text-[10px] rounded hover:border-primary hover:text-primary transition-all flex items-center gap-1 active:scale-95 shrink-0" id="upload-btn" aria-label="Upload document" title="Upload PDF/MD/TXT manual">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="align-middle inline">
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                    <span data-i18n="upload_btn">Upload PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Inline drag-and-drop alarm preview banner (original layout compatibility wrapper) -->
+              <div class="image-dropzone" id="image-dropzone" style="display:none;">
+                <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+                <div class="image-preview-container" id="image-preview-container" style="display: none;">
+                  <img id="image-preview" src="" alt="Image preview">
+                  <button class="icon-btn remove-image-btn" id="remove-image-btn" aria-label="Remove image">&times;</button>
+                  <div class="ocr-status" id="ocr-status" style="display: none;">
+                    <span class="ocr-spinner"></span>
+                    <span data-i18n="processing_ocr">Processing OCR locally...</span>
+                  </div>
+                </div>
+                <div class="dropzone-prompt" id="dropzone-prompt">
+                  <span class="dropzone-icon">📷</span>
+                  <span data-i18n="dropzone_prompt">Drag & drop an image of the error screen/alarm, or click to browse</span>
+                </div>
+              </div>
+
+              <!-- Main chat text message field -->
+              <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-sm flex items-end gap-sm focus-within:border-primary focus-within:shadow-[0_0_0_1px_#57f1db] transition-all">
+                <button class="p-sm text-on-surface-variant hover:text-primary transition-colors rounded mb-[2px]" title="Attach image code" onclick="document.getElementById('image-upload-input-sidebar').click()">
+                  <span class="material-symbols-outlined">attach_file</span>
+                </button>
+                <textarea
+                  class="w-full bg-transparent border-none focus:ring-0 text-body-lg text-on-surface placeholder:text-on-surface-variant resize-none py-sm min-h-[44px] max-h-[120px] overflow-y-auto font-body-lg"
+                  id="chat-input"
+                  rows="1"
+                  placeholder="Select an equipment manual to start troubleshooting..."
+                  data-i18n-placeholder="input_placeholder"
+                  aria-label="Type your question"
+                  disabled
+                ></textarea>
+                <button class="p-sm bg-primary text-on-primary rounded hover:brightness-125 transition-all flex items-center justify-center mb-[2px]" id="send-btn" disabled aria-label="Send message">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Footer encryption details -->
+              <div class="mt-xs flex justify-between px-sm">
+                <span class="font-label-mono text-[10px] text-on-surface-variant/60 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[12px]">lock</span> End-to-end encrypted session
+                </span>
+                <span class="font-label-mono text-[10px] text-primary" data-i18n="input_hint">Press Enter to send • Shift+Enter for new line</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Context & Reference Panels -->
+          <aside class="w-[320px] bg-surface-container-low border-l border-outline-variant flex flex-col hidden lg:flex shrink-0 z-20 h-full overflow-y-auto">
+            
+            <!-- Target Asset Details card -->
+            <div class="p-md border-b border-outline-variant flex flex-col gap-sm">
+              <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest">Target Asset</h3>
+              <div class="bg-surface border border-outline-variant rounded p-sm flex flex-col gap-xs relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-error/10 blur-xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                <div class="flex justify-between items-start">
+                  <span class="font-status-lg text-status-lg text-on-surface font-semibold" id="asset-name-val">Device Diagnostics</span>
+                  <span class="material-symbols-outlined text-on-surface-variant text-[18px]">qr_code_scanner</span>
+                </div>
+                <div class="flex flex-col gap-[2.5px] mt-xs">
+                  <span class="font-label-mono text-[10px] text-on-surface-variant flex justify-between">SN: <span class="text-on-surface" id="asset-sn-val">NL-9942-B</span></span>
+                  <span class="font-label-mono text-[10px] text-on-surface-variant flex justify-between">Loc: <span class="text-on-surface" id="asset-loc-val">ICU-Bed 4</span></span>
+                  <span class="font-label-mono text-[10px] text-on-surface-variant flex justify-between mt-sm">Status: 
+                    <span class="text-error font-bold flex items-center gap-1" id="asset-status-badge">
+                      <span class="w-1.5 h-1.5 rounded-full bg-error inline-block animate-pulse"></span>Fault Active
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Manual Reference blueprint diagram panel -->
+            <div class="p-md flex-1 flex flex-col gap-md">
+              
+              <div class="flex items-center justify-between">
+                <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest">Reference Schematic</h3>
+                <button class="text-primary hover:brightness-125 transition-all" onclick="document.querySelector('[data-target=view-manuals]').click()" title="Open Manuals Library">
+                  <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                </button>
+              </div>
+
+              <!-- Blueprint schematic image wrapper -->
+              <div class="bg-surface border border-outline-variant rounded overflow-hidden group relative">
+                <div class="aspect-video bg-surface-container-high relative">
+                  <div class="absolute inset-0 bg-surface-container flex flex-col items-center justify-center p-sm">
+                    <div class="w-full h-full border border-primary/20 rounded-sm relative overflow-hidden flex items-center justify-center bg-surface">
+                      <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(#3c4a46 1px, transparent 1px), linear-gradient(90deg, #3c4a46 1px, transparent 1px); background-size: 20px 20px;"></div>
+                      <span class="material-symbols-outlined text-[48px] text-primary/30">schema</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Blueprint text details -->
+                <div class="p-2.5 bg-surface-container-lowest border-t border-outline-variant">
+                  <h4 class="font-body-md text-body-md text-on-surface font-bold truncate" id="schematic-section-title">Section 4B: D-Sub Connector Pinout</h4>
+                  <p class="font-label-mono text-[10px] text-on-surface-variant mt-1" id="schematic-page-val">Page 142 • SpO2 Module Assembly</p>
+                </div>
+              </div>
+
+              <!-- AI Vision dropzone card -->
+              <div class="mt-md flex flex-col gap-sm">
+                <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse-glow"></span>
+                  AI Vision Input
+                </h3>
+                
+                <!-- Hidden file upload specifically for Vision Sidebar -->
+                <input type="file" id="image-upload-input-sidebar" accept="image/*" class="hidden">
+                
+                <div class="border-2 border-dashed border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm bg-surface-container-lowest hover:border-primary hover:bg-surface-container transition-all cursor-pointer group text-center" id="image-dropzone-sidebar">
+                  
+                  <!-- Preview overlay if image is uploaded -->
+                  <div class="w-full relative" id="sidebar-image-preview-container" style="display: none;">
+                    <img id="sidebar-image-preview" src="" alt="Sidebar Preview" class="w-full max-h-[140px] rounded object-cover border border-outline-variant/60">
+                    <button class="absolute top-1 right-1 bg-surface-dim/80 text-on-surface w-6 h-6 rounded-full flex items-center justify-center text-xs hover:bg-error transition-colors" id="sidebar-remove-image-btn" title="Remove image">&times;</button>
+                    <!-- Local OCR indicator overlay -->
+                    <div class="absolute inset-0 bg-surface-dim/80 flex items-center justify-center gap-2 rounded" id="sidebar-ocr-status" style="display: none;">
+                      <span class="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                      <span class="font-label-mono text-[9px] text-primary uppercase" data-i18n="processing_ocr">OCR Active</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Prompt block -->
+                  <div class="flex flex-col items-center gap-2" id="sidebar-dropzone-prompt">
+                    <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add_a_photo</span>
+                    </div>
+                    <div>
+                      <p class="font-body-md text-body-md text-on-surface" data-i18n="dropzone_prompt">Drop image to analyze</p>
+                      <p class="font-label-mono text-[10px] text-on-surface-variant mt-1">Macro shots of error/alarm screen</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </aside>
+        </div>
+
+        <!-- ═════════════════════════════════════════
+             VIEW 3: MANUALS REFERENCE LIBRARY
+             ═════════════════════════════════════════ -->
+        <div class="app-view hidden h-full overflow-y-auto p-margin" id="view-manuals">
+          <div class="max-w-[1280px] mx-auto">
+            
+            <!-- Library Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+              <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Technical Reference Library</h2>
+                <p class="text-on-surface-variant max-w-2xl">Access official OEM service manuals, schematics, and calibration procedures. All documents are indexed locally and verified.</p>
+              </div>
+              
+              <!-- Action buttons -->
+              <div class="flex items-center gap-3">
+                <input class="bg-surface-container border border-outline-variant text-on-surface text-body-md py-1.5 px-sm rounded w-64 focus:outline-none focus:border-primary/50 placeholder-on-surface-variant/50" placeholder="Search library..." type="text" id="library-search-input"/>
+                <button class="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface-variant font-label-mono text-label-mono rounded hover:border-primary hover:text-primary transition-colors flex items-center gap-2" id="library-upload-trigger">
+                  <span class="material-symbols-outlined text-[16px]">upload_file</span> Ingest PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento grid of manuals list -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="library-manuals-grid">
+              <!-- Will be loaded dynamically from /api/documents -->
+              <div class="col-span-full text-center py-12 text-on-surface-variant/50">
+                <span class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block"></span>
+                <p class="mt-2 font-label-mono text-xs">Loading library manuals...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════
+             VIEW 4: REPAIR HISTORY & LOGS
+             ═════════════════════════════════════════ -->
+        <div class="app-view hidden h-full overflow-y-auto p-margin" id="view-history">
+          <div class="max-w-[1280px] mx-auto">
+            
+            <!-- History Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+              <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Repair History & Sessions</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Log of past diagnostic and repair sessions. Review equipment status, resolution steps, and technician assignments.</p>
+              </div>
+              
+              <!-- Filters controls -->
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-2 bg-surface-container border border-outline-variant rounded px-3 py-1.5 hover:border-primary/50 transition-colors">
+                  <span class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
+                  <input class="bg-transparent border-none p-0 text-on-surface font-label-mono text-xs focus:ring-0 focus:outline-none w-[120px] [color-scheme:dark] cursor-pointer" type="date" id="history-date-filter"/>
+                </div>
+                <div class="flex items-center gap-2 bg-surface-container border border-outline-variant rounded px-3 py-1.5 hover:border-primary/50 transition-colors">
+                  <span class="material-symbols-outlined text-primary text-[18px]">person</span>
+                  <select class="bg-transparent border-none p-0 text-on-surface font-label-mono text-xs focus:ring-0 focus:outline-none cursor-pointer pr-6" id="history-tech-filter">
+                    <option value="all">All Technicians</option>
+                    <option value="tech-current">Tech ID: 884-A</option>
+                    <option value="tech-other">Tech ID: 291-B</option>
+                  </select>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Bento grid of past sessions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="history-sessions-grid">
+              <!-- Dynamically populated from /api/sessions -->
+              <div class="col-span-full text-center py-16 text-on-surface-variant/50" id="history-loading-placeholder">
+                <span class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block"></span>
+                <p class="mt-3 font-label-mono text-xs uppercase tracking-widest">Loading session history...</p>
+              </div>
+            </div>
+
+            <!-- Load more previous logs button -->
+            <div class="mt-8 flex justify-center pb-xl">
+              <button class="bg-transparent border border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-outline hover:bg-surface-container px-6 py-2 rounded font-label-mono text-label-mono transition-all flex items-center gap-2" id="load-prev-sessions-btn">
+                Refresh Session History
+                <span class="material-symbols-outlined text-sm">refresh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Custom Modal for Models Status -->
+  <div id="models-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[480px] w-full mx-4 shadow-xl relative flex flex-col gap-md">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+        <h3 class="font-label-mono text-label-mono text-primary flex items-center gap-sm">
+          <span class="material-symbols-outlined text-[18px]">psychology</span>
+          ACTIVE EDGE MODELS
+        </h3>
+        <button id="close-models-modal" class="text-on-surface-variant hover:text-on-surface text-lg cursor-pointer px-1">&times;</button>
+      </div>
+      <div class="flex flex-col gap-sm">
+        <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
+          <span class="font-label-mono text-[9px] text-primary">LLM ENGINE</span>
+          <span class="font-body-md text-[14px] text-on-surface font-semibold">MedPsy-4B-Q4_K_M-iMat</span>
+          <span class="text-[11px] text-on-surface-variant">Primary diagnostics, reasoning, and technical manual retrieval.</span>
+        </div>
+        <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
+          <span class="font-label-mono text-[9px] text-secondary">NMT TRANSLATOR</span>
+          <span class="font-body-md text-[14px] text-on-surface font-semibold">Bergamot-NMT</span>
+          <span class="text-[11px] text-on-surface-variant">On-device neural translator for real-time translation.</span>
+        </div>
+        <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
+          <span class="font-label-mono text-[9px] text-tertiary">EMBEDDING MODEL</span>
+          <span class="font-body-md text-[14px] text-on-surface font-semibold">QVAC-Embeddings</span>
+          <span class="text-[11px] text-on-surface-variant">Semantic vector generation for documentation search.</span>
+        </div>
+        <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
+          <span class="font-label-mono text-[9px] text-primary">OCR ENGINE</span>
+          <span class="font-body-md text-[14px] text-on-surface font-semibold">Local-OCR-Engine</span>
+          <span class="text-[11px] text-on-surface-variant">On-device screenshot text extractor.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Notifications -->
+  <div id="notifications-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[440px] w-full mx-4 shadow-xl relative flex flex-col gap-md">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+        <h3 class="font-label-mono text-label-mono text-primary flex items-center gap-sm">
+          <span class="material-symbols-outlined text-[18px]">notifications</span>
+          SYSTEM NOTIFICATIONS
+        </h3>
+        <button id="close-notifications-modal" class="text-on-surface-variant hover:text-on-surface text-lg cursor-pointer px-1">&times;</button>
+      </div>
+      <div class="flex flex-col gap-sm">
+        <div class="flex items-start gap-md p-md bg-surface-container-low border border-outline-variant/30 rounded">
+          <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+          <div class="flex-1">
+            <span class="font-body-md text-[13px] text-on-surface font-semibold block">All Engines Online</span>
+            <span class="text-[11px] text-on-surface-variant block mt-1">MedPsy-4B, translation and embedding models are active.</span>
+          </div>
+        </div>
+        <div class="flex items-start gap-md p-md bg-surface-container-low border border-outline-variant/30 rounded">
+          <span class="material-symbols-outlined text-secondary mt-0.5">database</span>
+          <div class="flex-1">
+            <span class="font-body-md text-[13px] text-on-surface font-semibold block">Knowledge Base Synced</span>
+            <span class="text-[11px] text-on-surface-variant block mt-1">1,638 chunks verified and indexed in active vector database.</span>
+          </div>
+        </div>
+        <div class="flex items-start gap-md p-md bg-surface-container-low border border-outline-variant/30 rounded">
+          <span class="material-symbols-outlined text-primary mt-0.5">bolt</span>
+          <div class="flex-1">
+            <span class="font-body-md text-[13px] text-on-surface font-semibold block">Vulkan Acceleration Active</span>
+            <span class="text-[11px] text-on-surface-variant block mt-1">Edge inference running natively with GPU hardware acceleration.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Help -->
+  <div id="help-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[500px] w-full mx-4 shadow-xl relative flex flex-col gap-md">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+        <h3 class="font-label-mono text-label-mono text-primary flex items-center gap-sm">
+          <span class="material-symbols-outlined text-[18px]">help_outline</span>
+          BIOMED HELP & SUPPORT
+        </h3>
+        <button id="close-help-modal" class="text-on-surface-variant hover:text-on-surface text-lg cursor-pointer px-1">&times;</button>
+      </div>
+      <div class="flex flex-col gap-md text-xs leading-relaxed text-on-surface-variant">
+        <div>
+          <h4 class="font-label-mono text-[10px] text-primary uppercase mb-1">Getting Started</h4>
+          <p>Select a medical manual from the library or the equipment dropdown. The assistant will tailor its reasoning based on the selected device architecture.</p>
+        </div>
+        <div>
+          <h4 class="font-label-mono text-[10px] text-secondary uppercase mb-1">OCR Error Capture</h4>
+          <p>Drag & drop or upload an image of the equipment's error/alarm screen. The app runs a local text extraction engine to pinpoint exact troubleshooting codes.</p>
+        </div>
+        <div>
+          <h4 class="font-label-mono text-[10px] text-tertiary uppercase mb-1">Privacy & Verification</h4>
+          <p>This application is powered by local edge engines. No clinical or technical logs leave the terminal. Verify compliance checklists before closing work orders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Clear Chat Confirmation -->
+  <div id="clear-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[400px] w-full mx-4 shadow-xl relative flex flex-col gap-md">
+      <div class="flex items-center gap-sm text-error border-b border-outline-variant/30 pb-sm">
+        <span class="material-symbols-outlined text-[20px] text-error">warning</span>
+        <h3 class="font-label-mono text-label-mono uppercase tracking-wider text-error">
+          Clear Conversation
+        </h3>
+      </div>
+      <p class="text-xs text-on-surface-variant leading-relaxed">
+        Are you sure you want to clear the active troubleshooting session? This action will reset the UI layout, but your session history files will remain safe.
+      </p>
+      <div class="flex justify-end gap-sm mt-md">
+        <button id="cancel-clear-btn" class="bg-transparent border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button id="clear-chat" class="bg-error text-on-error hover:brightness-125 px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer">
+          Clear Chat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Session Details -->
+  <div id="session-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[640px] w-full mx-4 shadow-xl relative flex flex-col gap-md max-h-[85vh]">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm shrink-0">
+        <h3 class="font-label-mono text-label-mono text-primary flex items-center gap-sm">
+          <span class="material-symbols-outlined text-[18px]">history</span>
+          <span id="session-detail-modal-title" data-i18n="session_detail_title">SESSION DIAGNOSTIC DETAIL</span>
+        </h3>
+        <button id="close-session-detail-modal" class="text-on-surface-variant hover:text-on-surface text-lg cursor-pointer px-1">&times;</button>
+      </div>
+      
+      <!-- Modal Content (Scrollable if too long) -->
+      <div class="flex-1 overflow-y-auto pr-1 flex flex-col gap-md text-xs leading-relaxed" id="session-detail-modal-content">
+        <!-- Will be dynamically populated -->
+      </div>
+      
+      <!-- Footer actions -->
+      <div class="flex justify-between items-center mt-md pt-sm border-t border-outline-variant/30 shrink-0">
+        <span class="font-label-mono text-[10px] text-on-surface-variant/40" id="session-detail-modal-meta"></span>
+        <div class="flex gap-sm">
+          <button id="session-detail-rerun-btn" class="bg-primary text-on-primary hover:brightness-125 px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">chat</span>
+            <span data-i18n="rerun_in_chat">Rerun in Chat</span>
+          </button>
+          <button id="close-session-detail-modal-btn" class="bg-transparent border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

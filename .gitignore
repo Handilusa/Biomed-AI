@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Model files (large GGUF binaries — download via scripts)
+models/*.gguf
+models/*.bin
+
+# Logs (generated at runtime)
+logs/*.json
+logs/*.csv
+!logs/.gitkeep
+!logs/example_demo_run.json
+
+# RAG database
+*.sqlite
+*.sqlite3
+*.db
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
