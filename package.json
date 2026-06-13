@@ -13,11 +13,13 @@
     "start": "node dist/index.js",
     "ingest": "tsx scripts/ingest-docs.ts",
     "demo:log": "tsx src/demo/runner.ts",
-    "download:models": "tsx scripts/download-models.ts"
+    "download:models": "tsx scripts/download-models.ts",
+    "postinstall": "node --input-type=module scripts/patch-qvac-rag.js"
   },
   "dependencies": {
     "@qvac/rag": "latest",
     "@qvac/sdk": "latest",
+    "corestore": "^7.4.7",
     "@types/multer": "^2.1.0",
     "express": "^5.1.0",
     "multer": "^2.1.1",

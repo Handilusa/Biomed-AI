@@ -1,22 +1,49 @@
 // ─── Edge MedTech Copilot — RAG Ingestion Pipeline ───
-// Chunks documents and embeds them using @qvac/rag.
+// Chunks documents, embeds them, and stores them in the HyperDB vector database.
 
-import { embed, ragSaveEmbeddings } from '@qvac/sdk';
+import { embed } from '@qvac/sdk';
 import fs from 'fs';
 import path from 'path';
+import { RAG, HyperDBAdapter } from '@qvac/rag';
+import Corestore from 'corestore';
 import type { ModelManager } from '../models/manager.js';
 import type { AppConfig } from '../config.js';
-import type { LoadedDocument, DocumentChunk } from '../types.js';
+import type { LoadedDocument } from '../types.js';
 
 export class RAGIngester {
   private modelManager: ModelManager;
   private config: AppConfig;
+  private rag!: RAG;
   private totalChunks: number = 0;
   private totalDocuments: number = 0;
 
-  constructor(modelManager: ModelManager, config: AppConfig) {
+  constructor(modelManager: ModelManager, config: AppConfig, rag?: RAG) {
     this.modelManager = modelManager;
     this.config = config;
+    if (rag) {
+      this.rag = rag;
+    } else {
+      const store = new Corestore(path.resolve(config.rag.dataDir, 'hyperdb'));
+      const dbAdapter = new HyperDBAdapter({
+        store,
+        dbName: 'biomed-rag-vectors',
+      });
+      const embeddingFunction = async (text: string | string[]) => {
+        const embedModelId = modelManager.getModelId('embeddings');
+        const result = await embed({
+          modelId: embedModelId,
+          text,
+        });
+        return result.embedding;
+      };
+      this.rag = new RAG({
+        embeddingFunction,
+        dbAdapter,
+      });
+      this.rag.ready().catch((err) => {
+        console.error('RAGIngester fallback RAG init failed:', err);
+      });
+    }
   }
 
   /**
@@ -29,7 +56,7 @@ export class RAGIngester {
     const embedModelId = this.modelManager.getModelId('embeddings');
     let chunksCreated = 0;
 
-    console.log(`\n📚 Starting RAG ingestion of ${documents.length} documents...`);
+    console.log(`\n📚 Starting HyperDB RAG ingestion of ${documents.length} documents...`);
 
     for (const doc of documents) {
       try {
@@ -73,14 +100,11 @@ export class RAGIngester {
           };
         });
 
-        // 4. Save embeddings to the workspace database
-        await ragSaveEmbeddings({
-          modelId: embedModelId,
-          documents: saveDocs,
-        });
+        // 4. Save embeddings to the HyperDBAdapter database
+        await this.rag.saveEmbeddings(saveDocs);
 
         chunksCreated += saveDocs.length;
-        console.log(`  ✅ ${doc.filename}: ${saveDocs.length} chunks ingested`);
+        console.log(`  ✅ ${doc.filename}: ${saveDocs.length} chunks ingested in HyperDB`);
         
         // Add to manifest
         this.updateManifest(doc.filename);
@@ -93,7 +117,7 @@ export class RAGIngester {
     this.totalChunks += chunksCreated;
     this.totalDocuments += documents.length;
 
-    console.log(`\n📊 Ingestion complete:`);
+    console.log(`\n📊 HyperDB Ingestion complete:`);
     console.log(`   Documents: ${documents.length}`);
     console.log(`   Chunks: ${chunksCreated}`);
     console.log(`   Time: ${(timeMs / 1000).toFixed(1)}s\n`);

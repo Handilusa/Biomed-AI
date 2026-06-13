@@ -87,7 +87,7 @@ function keywordPreClassify(query: string): TriageResult | null {
 export class TriageAgent {
   constructor(private modelManager: ModelManager, private config: AppConfig) {}
 
-  async run(query: string, lang: 'en' | 'es', imageBase64?: string): Promise<{
+  async run(query: string, lang: 'en' | 'es', imageBase64?: string, peerPublicKey?: string): Promise<{
     result: TriageResult;
     stats?: { prompt_tokens: number; completion_tokens: number };
   }> {
@@ -117,6 +117,11 @@ export class TriageAgent {
       ],
       stream: false,
       captureThinking: false,
+      delegate: peerPublicKey ? {
+        providerPublicKey: peerPublicKey,
+        fallbackToLocal: true,
+        timeout: 30000,
+      } : undefined,
     });
 
     // Wait for full completion to parse JSON

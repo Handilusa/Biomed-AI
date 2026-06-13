@@ -33,25 +33,45 @@ export class ModelManager {
     }
 
     console.log(`🔄 Loading LLM model: ${this.config.models.llmFile}...`);
+    console.log(`   (This may take 30-90 seconds on first run while the QVAC worker initializes)`);
     const startTime = Date.now();
 
-    const modelId = await loadModel({
-      modelSrc: this.config.models.llmPath,
-      modelType: 'llm',
-      modelConfig: { ctx_size: 4096 },
-    });
+    // Retry logic: the bare runtime RPC worker can take extra time on first cold start
+    const MAX_RETRIES = 3;
+    let lastError: Error | null = null;
 
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`✅ LLM loaded in ${elapsed}s (modelId: ${modelId})`);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        if (attempt > 1) {
+          const waitSec = attempt * 5;
+          console.log(`🔄 Retry ${attempt}/${MAX_RETRIES} — waiting ${waitSec}s before retrying...`);
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+        }
 
-    this.models.set('llm', {
-      role: 'llm',
-      modelId,
-      filename: this.config.models.llmFile,
-      loadedAt: new Date().toISOString(),
-    });
+        const modelId = await loadModel({
+          modelSrc: this.config.models.llmPath,
+          modelType: 'llm',
+          modelConfig: { ctx_size: 4096 },
+        });
 
-    return modelId;
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`✅ LLM loaded in ${elapsed}s (modelId: ${modelId})`);
+
+        this.models.set('llm', {
+          role: 'llm',
+          modelId,
+          filename: this.config.models.llmFile,
+          loadedAt: new Date().toISOString(),
+        });
+
+        return modelId;
+      } catch (err) {
+        lastError = err as Error;
+        console.warn(`⚠ LLM load attempt ${attempt}/${MAX_RETRIES} failed: ${lastError.message}`);
+      }
+    }
+
+    throw lastError ?? new Error('LLM model loading failed after all retries');
   }
 
   /**

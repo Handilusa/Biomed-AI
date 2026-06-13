@@ -10,7 +10,13 @@ import { StructuredLogger } from './logging/logger.js';
 import { MetricsCollector } from './logging/metrics.js';
 import { createApp, startServer } from './server/app.js';
 import { Orchestrator } from './agents/orchestrator.js';
-import { processImageWithVisionModel } from './server/ocr.js';
+import { SwarmManager } from './server/swarm.js';
+import { FinetuneManager } from './server/finetune.js';
+import { OCRManager } from './server/ocr.js';
+import { RAG, HyperDBAdapter } from '@qvac/rag';
+import Corestore from 'corestore';
+import path from 'node:path';
+import { embed } from '@qvac/sdk';
 import { randomUUID } from 'node:crypto';
 import type { LogEntry, TriageCategory, FinalDisposition } from './types.js';
 
@@ -39,8 +45,40 @@ async function main() {
   logger.startSession('server');
 
   // ─── 4. Initialize RAG components ───
-  const retriever = new RAGRetriever(modelManager, config);
-  const ingester = new RAGIngester(modelManager, config);
+  const storePath = path.resolve(config.rag.dataDir, 'hyperdb');
+  console.log(`📁 Initializing Corestore at ${storePath}...`);
+  const store = new Corestore(storePath);
+  await store.ready();
+
+  const dbAdapter = new HyperDBAdapter({
+    store,
+    dbName: 'biomed-rag-vectors',
+  });
+
+  const embeddingFunction = async (text: string | string[]) => {
+    const embedModelId = modelManager.getModelId('embeddings');
+    const result = await embed({
+      modelId: embedModelId,
+      text,
+    });
+    return result.embedding;
+  };
+
+  const rag = new RAG({
+    embeddingFunction,
+    dbAdapter,
+  });
+
+  await rag.ready();
+  console.log('✅ HyperDB RAG Engine ready!');
+
+  const retriever = new RAGRetriever(modelManager, config, rag);
+  const ingester = new RAGIngester(modelManager, config, rag);
+
+  // ─── Swarm, Finetuning, OCR Managers ───
+  const swarmManager = new SwarmManager();
+  const finetuneManager = new FinetuneManager(config.rag.dataDir);
+  const ocrManager = new OCRManager();
 
   // ─── 5. Initialize Orchestrator pipeline ───
   const orchestrator = new Orchestrator(modelManager, config, retriever);
@@ -72,7 +110,7 @@ async function main() {
   // ─── 7. Define the query processor (used by API routes) ───
   async function* processQuery(
     query: string,
-    options: { uiLanguage?: 'en' | 'es', responseLanguage?: 'auto' | 'en' | 'es', evidenceMode?: 'original' | 'translated' | 'both' },
+    options: { uiLanguage?: 'en' | 'es', responseLanguage?: 'auto' | 'en' | 'es', evidenceMode?: 'original' | 'translated' | 'both', peerPublicKey?: string },
     documentId?: string,
     imageBase64?: string
   ): AsyncGenerator<{ type: string; data: unknown }> {
@@ -97,7 +135,7 @@ async function main() {
 
     // If an image is provided, extract OCR text first
     if (imageBase64) {
-      const ocrText = await processImageWithVisionModel(modelManager, imageBase64);
+      const ocrText = await ocrManager.extractText(imageBase64);
       if (ocrText) {
         finalQuery += `\n[EXTRACTED OCR TEXT]: ${ocrText}`;
       }
@@ -186,15 +224,21 @@ async function main() {
   }
 
   // ─── 8. Create and start the server ───
-  const app = createApp({
+  const serverDeps = {
     config,
     modelManager,
     logger,
     processQuery,
     getRagStatus: () => ingester.getStatus(),
-  });
+    rag,
+    swarmManager,
+    finetuneManager,
+    ocrManager,
+  };
 
-  await startServer(app, config);
+  const app = createApp(serverDeps);
+
+  await startServer(app, config, serverDeps);
 
   console.log('💡 Tips:');
   console.log('   - Open the URL above in your browser to use the chat interface');

@@ -19,6 +19,8 @@
 
   <!-- Tailwind Play CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -556,7 +558,7 @@
               <div class="image-dropzone" id="image-dropzone" style="display:none;">
                 <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
                 <div class="image-preview-container" id="image-preview-container" style="display: none;">
-                  <img id="image-preview" src="" alt="Image preview">
+                  <canvas id="image-preview-canvas" class="w-full h-auto max-h-[140px] rounded object-contain border border-outline-variant/60 bg-surface"></canvas>
                   <button class="icon-btn remove-image-btn" id="remove-image-btn" aria-label="Remove image">&times;</button>
                   <div class="ocr-status" id="ocr-status" style="display: none;">
                     <span class="ocr-spinner"></span>
@@ -666,7 +668,7 @@
                   
                   <!-- Preview overlay if image is uploaded -->
                   <div class="w-full relative" id="sidebar-image-preview-container" style="display: none;">
-                    <img id="sidebar-image-preview" src="" alt="Sidebar Preview" class="w-full max-h-[140px] rounded object-cover border border-outline-variant/60">
+                    <canvas id="sidebar-image-preview-canvas" class="w-full h-auto max-h-[140px] rounded object-contain border border-outline-variant/60 bg-surface"></canvas>
                     <button class="absolute top-1 right-1 bg-surface-dim/80 text-on-surface w-6 h-6 rounded-full flex items-center justify-center text-xs hover:bg-error transition-colors" id="sidebar-remove-image-btn" title="Remove image">&times;</button>
                     <!-- Local OCR indicator overlay -->
                     <div class="absolute inset-0 bg-surface-dim/80 flex items-center justify-center gap-2 rounded" id="sidebar-ocr-status" style="display: none;">
@@ -690,6 +692,102 @@
               </div>
 
             </div>
+
+            <!-- Swarm Panel -->
+            <div class="p-md border-t border-outline-variant flex flex-col gap-sm">
+              <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-primary">diversity_3</span>
+                Federated P2P Swarm
+              </h3>
+              <div class="bg-surface border border-outline-variant rounded p-sm flex flex-col gap-sm relative">
+                <!-- Status Row -->
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-on-surface-variant">Swarm Status:</span>
+                  <span id="swarm-status-badge" class="text-error font-bold flex items-center gap-1 font-label-mono text-[10px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-error inline-block animate-pulse"></span>OFFLINE
+                  </span>
+                </div>
+                <!-- Start/Stop Button -->
+                <button id="btn-toggle-swarm" class="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 font-label-mono text-[10px] uppercase rounded py-2 px-3 transition-all">
+                  Start Swarm Node
+                </button>
+                <!-- Public Key -->
+                <div id="swarm-key-container" class="hidden flex flex-col gap-1 mt-1 pt-1 border-t border-outline-variant/30">
+                  <span class="font-label-mono text-[9px] text-on-surface-variant font-bold">LOCAL PEER KEY:</span>
+                  <div class="flex items-center gap-1">
+                    <input id="swarm-peer-key" readonly class="bg-surface-container border border-outline-variant rounded p-1 text-[9px] font-label-mono text-on-surface-variant flex-1 focus:outline-none" value="" />
+                    <button id="btn-copy-swarm-key" class="p-1 bg-surface-container border border-outline-variant rounded text-on-surface-variant hover:text-primary transition-colors" title="Copy Key">
+                      <span class="material-symbols-outlined text-sm">content_copy</span>
+                    </button>
+                  </div>
+                </div>
+                <!-- Connected Peers List -->
+                <div class="flex flex-col gap-1 mt-1">
+                  <span class="font-label-mono text-[9px] text-on-surface-variant font-bold">CONNECTED PEERS (<span id="swarm-peers-count">0</span>):</span>
+                  <div id="swarm-peers-list" class="flex flex-col gap-1 max-h-[80px] overflow-y-auto">
+                    <div class="text-[10px] text-on-surface-variant/40 italic">No active connections.</div>
+                  </div>
+                </div>
+                <!-- Connect Manual Input -->
+                <div class="flex flex-col gap-1.5 mt-1 pt-1 border-t border-outline-variant/30">
+                  <span class="font-label-mono text-[9px] text-on-surface-variant font-bold">CONNECT TO REMOTE PEER:</span>
+                  <div class="flex gap-1">
+                    <input id="input-remote-peer-key" placeholder="Enter Hex Public Key..." class="bg-surface-container border border-outline-variant rounded p-1 text-[10px] font-label-mono text-on-surface flex-1 focus:outline-none focus:border-primary/50" />
+                    <button id="btn-connect-peer" class="px-2.5 py-1 bg-primary text-on-primary rounded text-[10px] hover:brightness-125 transition-all font-semibold uppercase">
+                      Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fine-Tuning Panel -->
+            <div class="p-md border-t border-outline-variant flex flex-col gap-sm">
+              <h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-secondary">model_training</span>
+                Local LoRA Fine-Tuning
+              </h3>
+              <div class="bg-surface border border-outline-variant rounded p-sm flex flex-col gap-sm">
+                <!-- Corrections Count Row -->
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-on-surface-variant">Corrections Dataset:</span>
+                  <span class="font-bold text-secondary font-label-mono text-[10px]"><span id="finetune-corrections-count">0</span> / <span id="finetune-required-count">5</span></span>
+                </div>
+                <!-- Training Progress -->
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-on-surface-variant">Training Status:</span>
+                  <span id="finetune-status-badge" class="font-bold text-on-surface-variant font-label-mono text-[10px] uppercase">IDLE</span>
+                </div>
+                <!-- Progress Stats -->
+                <div id="finetune-progress-stats" class="hidden grid grid-cols-2 gap-sm bg-surface-container-low p-2 rounded border border-outline-variant/30">
+                  <div class="flex flex-col">
+                    <span class="text-[8px] text-on-surface-variant font-label-mono uppercase">Epoch / Batch</span>
+                    <span id="finetune-stat-epoch" class="text-[10px] text-on-surface font-semibold font-label-mono">1 / 1</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[8px] text-on-surface-variant font-label-mono uppercase">Current Loss</span>
+                    <span id="finetune-stat-loss" class="text-[10px] text-secondary font-semibold font-label-mono">0.00</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[8px] text-on-surface-variant font-label-mono uppercase">Accuracy</span>
+                    <span id="finetune-stat-acc" class="text-[10px] text-primary font-semibold font-label-mono">0.0%</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[8px] text-on-surface-variant font-label-mono uppercase">Time Remaining</span>
+                    <span id="finetune-stat-eta" class="text-[10px] text-on-surface font-semibold font-label-mono">0s</span>
+                  </div>
+                </div>
+                <!-- Loss Graph Canvas -->
+                <div class="w-full h-[100px] bg-surface-container/30 border border-outline-variant/30 rounded overflow-hidden relative">
+                  <canvas id="loss-chart" class="w-full h-full"></canvas>
+                </div>
+                <!-- Train Button -->
+                <button id="btn-start-finetune" disabled class="w-full bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-label-mono text-[10px] uppercase rounded py-2 px-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  Train MedPsy Model
+                </button>
+              </div>
+            </div>
+
           </aside>
         </div>
 
@@ -931,6 +1029,40 @@
             Close
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Correcting AI Diagnosis -->
+  <div id="correction-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm hidden transition-all duration-300">
+    <div class="bg-surface-container border border-outline-variant rounded p-lg max-w-[500px] w-full mx-4 shadow-xl relative flex flex-col gap-md">
+      <div class="flex items-center gap-sm text-secondary border-b border-outline-variant/30 pb-sm">
+        <span class="material-symbols-outlined text-secondary">edit_note</span>
+        <h3 class="font-label-mono text-label-mono uppercase tracking-wider text-secondary">
+          Correct AI Diagnosis
+        </h3>
+      </div>
+      <div class="flex flex-col gap-sm text-xs text-left">
+        <div>
+          <span class="font-label-mono text-[9px] text-on-surface-variant block mb-1">ORIGINAL QUERY</span>
+          <div id="correction-original-query" class="bg-surface-container-low border border-outline-variant/30 p-2 rounded italic text-on-surface-variant max-h-[80px] overflow-y-auto"></div>
+        </div>
+        <div>
+          <span class="font-label-mono text-[9px] text-on-surface-variant block mb-1">ORIGINAL RESPONSE</span>
+          <div id="correction-original-response" class="bg-surface-container-low border border-outline-variant/30 p-2 rounded text-on-surface-variant max-h-[120px] overflow-y-auto whitespace-pre-wrap"></div>
+        </div>
+        <div>
+          <label for="correction-input" class="font-label-mono text-[9px] text-primary block mb-1">CORRECTED SERVICE GUIDANCE (JSON OR TEXT)</label>
+          <textarea id="correction-input" rows="5" class="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 resize-none" placeholder="Provide correct diagnostic steps, error code explanations, or compliance advice..."></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-sm mt-md">
+        <button id="btn-cancel-correction" class="bg-transparent border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button id="btn-save-correction" class="bg-secondary text-on-secondary hover:brightness-125 px-4 py-2 rounded font-label-mono text-label-mono text-[11px] transition-colors cursor-pointer font-bold">
+          Save Correction
+        </button>
       </div>
     </div>
   </div>

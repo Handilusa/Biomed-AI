@@ -72,6 +72,7 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
       uiLanguage: body.uiLanguage || 'en',
       responseLanguage: body.responseLanguage || 'auto',
       evidenceMode: body.evidenceMode || 'original',
+      peerPublicKey: body.peerPublicKey,
     };
 
     const requestId = randomUUID();
@@ -233,6 +234,223 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
       console.error('Error starting new session:', err);
       res.status(500).json({ error: 'Failed to start new session' });
     }
+  });
+
+  // ─── OCR Analysis (Native ONNX) ───
+  router.post('/ocr', upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      if (!deps.ocrManager) {
+        res.status(500).json({ error: 'OCR Manager is not initialized.' });
+        return;
+      }
+
+      let imageInput: string | Buffer;
+      if (req.file) {
+        imageInput = req.file.buffer;
+      } else if (req.body.image) {
+        let base64Str = req.body.image;
+        if (base64Str.startsWith('data:image')) {
+          base64Str = base64Str.split(',')[1];
+        }
+        imageInput = Buffer.from(base64Str, 'base64');
+      } else {
+        res.status(400).json({ error: 'No image file or base64 data provided.' });
+        return;
+      }
+
+      const result = await deps.ocrManager.processImage(imageInput);
+      res.json(result);
+    } catch (err) {
+      console.error('OCR API error:', err);
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  // ─── P2P Swarm Endpoints ───
+  router.get('/swarm/status', (_req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    res.json(deps.swarmManager.getStatus());
+  });
+
+  router.post('/swarm/start', async (_req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    try {
+      const result = await deps.swarmManager.startProvider();
+      res.json({ success: true, ...result });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.post('/swarm/stop', async (_req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    try {
+      await deps.swarmManager.stopProvider();
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.post('/swarm/peers/connect', (req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    const { peerPublicKey, alias } = req.body;
+    if (!peerPublicKey || typeof peerPublicKey !== 'string') {
+      res.status(400).json({ error: 'peerPublicKey is required.' });
+      return;
+    }
+    try {
+      const peer = deps.swarmManager.connectPeer(peerPublicKey, alias);
+      res.json({ success: true, peer });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.post('/swarm/peers/disconnect', (req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    const { peerPublicKey } = req.body;
+    if (!peerPublicKey || typeof peerPublicKey !== 'string') {
+      res.status(400).json({ error: 'peerPublicKey is required.' });
+      return;
+    }
+    try {
+      deps.swarmManager.disconnectPeer(peerPublicKey);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.get('/swarm/events', (req: Request, res: Response) => {
+    if (!deps.swarmManager) {
+      res.status(500).json({ error: 'Swarm Manager is not initialized.' });
+      return;
+    }
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const callback = (event: any) => {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    deps.swarmManager.onEvent(callback);
+
+    req.on('close', () => {
+      deps.swarmManager?.removeListener(callback);
+      res.end();
+    });
+  });
+
+  // ─── Fine-Tuning Endpoints ───
+  router.get('/finetune/status', (_req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    res.json(deps.finetuneManager.getStatus());
+  });
+
+  router.get('/finetune/corrections', (_req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    res.json({ corrections: deps.finetuneManager.getCorrections() });
+  });
+
+  router.post('/finetune/corrections', (req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    const { originalQuery, originalResponse, correctedResponse, technician, documentId } = req.body;
+    if (!originalQuery || !correctedResponse || !technician) {
+      res.status(400).json({ error: 'originalQuery, correctedResponse, and technician are required.' });
+      return;
+    }
+    try {
+      const correction = deps.finetuneManager.saveCorrection({
+        originalQuery,
+        originalResponse: originalResponse || '',
+        correctedResponse,
+        technician,
+        documentId,
+      });
+      res.json({ success: true, correction });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.post('/finetune/train', async (_req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    try {
+      const modelId = deps.modelManager.getModelId('llm');
+      // Run fine-tuning asynchronously so it doesn't block the HTTP request
+      deps.finetuneManager.startTraining(modelId).catch((err) => {
+        console.error('Fine-tuning training job background error:', err);
+      });
+      res.json({ success: true, message: 'Training started in background.' });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.post('/finetune/cancel', async (_req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    try {
+      const modelId = deps.modelManager.getModelId('llm');
+      await deps.finetuneManager.cancelTraining(modelId);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  router.get('/finetune/events', (req: Request, res: Response) => {
+    if (!deps.finetuneManager) {
+      res.status(500).json({ error: 'Fine-tuning Manager is not initialized.' });
+      return;
+    }
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const callback = (event: any) => {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    deps.finetuneManager.onEvent(callback);
+
+    req.on('close', () => {
+      deps.finetuneManager?.removeListener(callback);
+      res.end();
+    });
   });
 
   return router;

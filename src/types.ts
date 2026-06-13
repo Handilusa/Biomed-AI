@@ -230,6 +230,7 @@ export interface ChatRequest {
   evidenceMode?: 'original' | 'translated' | 'both';
   documentId?: string;
   imageBase64?: string; // New field for OCR / Vision
+  peerPublicKey?: string; // New field for P2P swarm delegated inference
 }
 
 export type SSEEventType =

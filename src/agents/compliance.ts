@@ -13,7 +13,7 @@ import type { SearchResult } from '../types.js';
 export class ComplianceAgent {
   constructor(private modelManager: ModelManager, private config: AppConfig) {}
 
-  async enforceClinicalBoundary(lang: 'en' | 'es'): Promise<{ content: string }> {
+  async enforceClinicalBoundary(lang: 'en' | 'es', peerPublicKey?: string): Promise<{ content: string }> {
     const msg = lang === 'es' 
       ? 'Se sospecha un problema clínico; verifica con el personal clínico y no continúes con suposiciones técnicas.' 
       : 'Clinical issue suspected; verify with clinical staff and do not continue technical assumptions.';
@@ -25,7 +25,8 @@ export class ComplianceAgent {
     lang: 'en' | 'es',
     category?: string,
     userQuery: string = '',
-    evidence: SearchResult[] = []
+    evidence: SearchResult[] = [],
+    peerPublicKey?: string
   ): AsyncGenerator<{ type: string; data: unknown }> {
     
     // Extract text from RAG evidence
@@ -72,6 +73,11 @@ export class ComplianceAgent {
       ],
       stream: true,
       captureThinking: false,
+      delegate: peerPublicKey ? {
+        providerPublicKey: peerPublicKey,
+        fallbackToLocal: true,
+        timeout: 30000,
+      } : undefined,
     });
 
     // Collect full output — compliance agent should only produce a JSON block

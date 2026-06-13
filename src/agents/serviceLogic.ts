@@ -15,7 +15,8 @@ export class ServiceLogicAgent {
     category: TriageCategory,
     ragResults: SearchResult[],
     lang: 'en' | 'es',
-    userQuery: string
+    userQuery: string,
+    peerPublicKey?: string
   ): AsyncGenerator<{ type: string; data: unknown }> {
     
     const modelId = this.modelManager.getModelId('llm');
@@ -33,6 +34,11 @@ export class ServiceLogicAgent {
       ],
       stream: true,
       captureThinking: false,
+      delegate: peerPublicKey ? {
+        providerPublicKey: peerPublicKey,
+        fallbackToLocal: true,
+        timeout: 30000,
+      } : undefined,
     });
 
     let fullOutput = '';

@@ -1,7 +1,10 @@
 // ─── Edge MedTech Copilot — RAG Retriever ───
-// Wraps @qvac/sdk ragSearch for similarity search.
+// Wraps @qvac/rag similarity search.
 
-import { ragSearch } from '@qvac/sdk';
+import { RAG, HyperDBAdapter } from '@qvac/rag';
+import Corestore from 'corestore';
+import path from 'node:path';
+import { embed } from '@qvac/sdk';
 import type { ModelManager } from '../models/manager.js';
 import type { AppConfig } from '../config.js';
 import type { SearchResult } from '../types.js';
@@ -9,28 +12,50 @@ import type { SearchResult } from '../types.js';
 export class RAGRetriever {
   private modelManager: ModelManager;
   private config: AppConfig;
+  private rag!: RAG;
 
-  constructor(modelManager: ModelManager, config: AppConfig) {
+  constructor(modelManager: ModelManager, config: AppConfig, rag?: RAG) {
     this.modelManager = modelManager;
     this.config = config;
+    if (rag) {
+      this.rag = rag;
+    } else {
+      const store = new Corestore(path.resolve(config.rag.dataDir, 'hyperdb'));
+      const dbAdapter = new HyperDBAdapter({
+        store,
+        dbName: 'biomed-rag-vectors',
+      });
+      const embeddingFunction = async (text: string | string[]) => {
+        const embedModelId = modelManager.getModelId('embeddings');
+        const result = await embed({
+          modelId: embedModelId,
+          text,
+        });
+        return result.embedding;
+      };
+      this.rag = new RAG({
+        embeddingFunction,
+        dbAdapter,
+      });
+      this.rag.ready().catch((err) => {
+        console.error('RAGRetriever fallback RAG init failed:', err);
+      });
+    }
   }
 
   /**
-   * Search the RAG index for chunks similar to the query.
+   * Search the HyperDB RAG index for chunks similar to the query.
    * @param query - Search query
    * @param documentId - Optional document ID to filter by
    * @param topK - Number of results to return (default from config)
    */
   async search(query: string, documentId?: string, topK?: number): Promise<SearchResult[]> {
-    const embedModelId = this.modelManager.getModelId('embeddings');
     const finalK = topK ?? this.config.rag.topK;
     // If filtering by document, request more results initially since SDK lacks metadata filtering
     const searchK = documentId ? 50 : finalK;
 
     try {
-      const results = await ragSearch({
-        modelId: embedModelId,
-        query,
+      const results = await this.rag.search(query, {
         topK: searchK,
       });
 
@@ -38,7 +63,7 @@ export class RAGRetriever {
         return [];
       }
 
-      // ragSearch returns { id, content, score }
+      // RAG search returns { id, content, score }
       let filteredResults = results as { id?: string; content?: string; score?: number; }[];
       
       // Filter by document ID if provided (must be deterministic match)
@@ -61,7 +86,7 @@ export class RAGRetriever {
         })
         .filter((r) => r.text.length > 0);
     } catch (err) {
-      console.error(`❌ RAG search error: ${(err as Error).message}`);
+      console.error(`❌ HyperDB RAG search error: ${(err as Error).message}`);
       return [];
     }
   }

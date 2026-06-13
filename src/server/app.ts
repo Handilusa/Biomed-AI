@@ -13,6 +13,11 @@ import type { StructuredLogger } from '../logging/logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+import type { RAG } from '@qvac/rag';
+import type { SwarmManager } from './swarm.js';
+import type { FinetuneManager } from './finetune.js';
+import type { OCRManager } from './ocr.js';
+
 export interface ServerDependencies {
   config: AppConfig;
   modelManager: ModelManager;
@@ -20,11 +25,15 @@ export interface ServerDependencies {
   // These will be injected once agents and RAG are initialized
   processQuery?: (
     query: string, 
-    options: { uiLanguage?: 'en' | 'es', responseLanguage?: 'auto' | 'en' | 'es', evidenceMode?: 'original' | 'translated' | 'both' }, 
+    options: { uiLanguage?: 'en' | 'es', responseLanguage?: 'auto' | 'en' | 'es', evidenceMode?: 'original' | 'translated' | 'both', peerPublicKey?: string }, 
     documentId?: string, 
     imageBase64?: string
   ) => AsyncGenerator<{ type: string; data: unknown }>;
   getRagStatus?: () => { indexed_documents: number; total_chunks: number };
+  rag?: RAG;
+  swarmManager?: SwarmManager;
+  finetuneManager?: FinetuneManager;
+  ocrManager?: OCRManager;
 }
 
 /**
@@ -60,7 +69,8 @@ export function createApp(deps: ServerDependencies): express.Application {
  */
 export function startServer(
   app: express.Application,
-  config: AppConfig
+  config: AppConfig,
+  deps?: ServerDependencies
 ): Promise<void> {
   return new Promise((resolve) => {
     const server = app.listen(config.server.port, config.server.host, () => {
@@ -71,8 +81,23 @@ export function startServer(
     });
 
     // Graceful shutdown
-    const shutdown = () => {
+    const shutdown = async () => {
       console.log('\n🛑 Shutting down server...');
+      if (deps?.swarmManager) {
+        try {
+          await deps.swarmManager.stopProvider();
+        } catch (e) {
+          console.error('Error stopping swarm provider:', e);
+        }
+      }
+      if (deps?.rag) {
+        try {
+          await deps.rag.close();
+          console.log('✅ RAG database closed.');
+        } catch (e) {
+          console.error('Error closing RAG:', e);
+        }
+      }
       server.close(() => {
         console.log('✅ Server closed.');
         process.exit(0);

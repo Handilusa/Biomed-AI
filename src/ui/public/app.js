@@ -245,12 +245,15 @@
     const { container, content } = createMessageEl('user');
     content.textContent = text;
     chatMessages.appendChild(container);
-    scrollToBottom();
+    scrollToBottom(true);
   }
 
-  function scrollToBottom() {
+  function scrollToBottom(force = false) {
     requestAnimationFrame(() => {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      const isNearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 150;
+      if (isNearBottom || force) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     });
   }
 
@@ -387,11 +390,21 @@
     evidenceUsed,
     instructions,
     finalDisposition,
-    lang
+    lang,
+    isStreaming = false
   }) {
     let html = '';
     const isEs = lang === 'es';
     
+    // Typing indicator component
+    const dotsHtml = `
+      <span class="typing-indicator-inline">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    `;
+
     // Triage row
     if (triageCategory) {
       const displayCategory = triageCategory.replace(/_/g, ' ');
@@ -399,6 +412,13 @@
         <div class="diag-row">
           <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span>
           <span class="diag-row__value diag-row__value--triage">${displayCategory}</span>
+        </div>
+      `;
+    } else if (isStreaming) {
+      html += `
+        <div class="diag-row diag-row--loading">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span>
+          <span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Clasificando' : 'Categorizing'}${dotsHtml}</span>
         </div>
       `;
     }
@@ -411,6 +431,13 @@
           <span class="diag-row__value">${reasoningSummary}</span>
         </div>
       `;
+    } else if (isStreaming) {
+      html += `
+        <div class="diag-row diag-row--loading">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${isEs ? 'Por qué esta acción' : 'Why this action'}:</span>
+          <span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Analizando diagnóstico' : 'Analyzing diagnosis'}${dotsHtml}</span>
+        </div>
+      `;
     }
     
     // Evidence row
@@ -421,15 +448,34 @@
           <span class="diag-row__value">${evidenceUsed}</span>
         </div>
       `;
+    } else if (isStreaming) {
+      html += `
+        <div class="diag-row diag-row--loading">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${isEs ? 'Evidencia' : 'Evidence'}:</span>
+          <span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span>
+        </div>
+      `;
     }
     
     // Action row
     if (instructions && instructions.trim()) {
-      const cleanInstructions = instructions.replace(/\\n/g, '\n');
+      let cleanInstructions = instructions.replace(/\\n/g, '\n');
+      if (/\b2\.\s/.test(cleanInstructions) && !/^(?:1\.\s|1\)\s|[\-\*\u2022])/.test(cleanInstructions.trim())) {
+        cleanInstructions = '1. ' + cleanInstructions;
+      }
+      cleanInstructions = cleanInstructions.replace(/(?<!\d)\s+(\d+)\.\s+/g, '\n$1. ');
+      
       html += `
         <div class="diag-row diag-row--action">
           <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${isEs ? 'Acción' : 'Action'}:</span>
           <div class="diag-row__instructions">${renderMarkdown(cleanInstructions.trim())}</div>
+        </div>
+      `;
+    } else if (isStreaming) {
+      html += `
+        <div class="diag-row diag-row--action diag-row--loading">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${isEs ? 'Acción' : 'Action'}:</span>
+          <div class="diag-row__instructions text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Generando guía de reparación' : 'Generating repair guide'}${dotsHtml}</div>
         </div>
       `;
     }
@@ -441,6 +487,13 @@
         <div class="diag-row">
           <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${isEs ? 'Disposición' : 'Disposition'}:</span>
           <span class="diag-row__value diag-row__value--disposition">${dispText}</span>
+        </div>
+      `;
+    } else if (isStreaming) {
+      html += `
+        <div class="diag-row diag-row--loading">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${isEs ? 'Disposición' : 'Disposition'}:</span>
+          <span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Evaluando estado final' : 'Evaluating final status'}${dotsHtml}</span>
         </div>
       `;
     }
@@ -538,6 +591,7 @@
 
     // Finalize message
     updateAssistantMessage(msgEl, {
+      query,
       agent: currentAgent,
       agentLabel,
       content: contentText || t('no_response'),
@@ -602,11 +656,16 @@
       </div>
     `;
     chatMessages.appendChild(msgEl);
-    scrollToBottom();
+    scrollToBottom(true);
+
+    const sectionState = {}; // { sectionKey: { text, animating, animationId } }
+    let renderVersion = 0;
 
     function renderLiveCard(showTypingIndicator = true) {
       const contentEl = msgEl.querySelector('.message__content');
       if (!contentEl) return;
+
+      renderVersion++;
 
       // Hide JSON block from the live rendered text
       let visibleText = contentText;
@@ -629,26 +688,222 @@
         evidenceText = sources.map(s => s.document).filter((v, i, a) => a.indexOf(v) === i).join(', ');
       }
 
-      const cardHtml = renderDiagnosticResponse({
+      // Build the section data to compare with current state
+      const sections = buildSectionData({
         triageCategory,
         reasoningSummary: thinkingText,
         evidenceUsed: evidenceText,
         instructions: visibleText,
         finalDisposition,
+        isStreaming: showTypingIndicator,
         lang: currentLang
       });
 
-      let finalHtml = cardHtml;
-      if (showTypingIndicator) {
-        finalHtml += `
-          <div class="typing-indicator" style="margin-top: var(--space-sm); padding: var(--space-xs) 0 0 0;">
-            <span class="typing-indicator__dot"></span>
-            <span class="typing-indicator__dot"></span>
-            <span class="typing-indicator__dot"></span>
-          </div>
-        `;
+      // Build the card HTML but use typewriter for new real-content sections
+      let cardInnerHtml = '';
+      for (const sec of sections) {
+        const prev = sectionState[sec.key];
+        if (sec.isLoading) {
+          // Loading placeholder — render directly, no typewriter
+          cardInnerHtml += sec.html;
+          // If this section was previously animating, cancel it
+          if (prev && prev.animating) {
+            prev.animating = false;
+          }
+        } else if (!prev || prev.text !== sec.text) {
+          // New content or changed content — render container, typewrite the value
+          cardInnerHtml += sec.html;
+          sectionState[sec.key] = { text: sec.text, animating: true, targetHtml: sec.valueHtml, version: renderVersion };
+        } else if (prev && prev.animating) {
+          // Same content, still animating — re-render the shell but keep the animation target
+          cardInnerHtml += sec.html;
+        } else {
+          // Same content, already done — render directly
+          cardInnerHtml += sec.html;
+        }
       }
-      contentEl.innerHTML = finalHtml;
+
+      contentEl.innerHTML = cardInnerHtml ? `<div class="diagnostic-card">${cardInnerHtml}</div>` : '';
+
+      // Now apply typewriter to any newly-appeared sections
+      const diagRows = contentEl.querySelectorAll('.diag-row');
+      diagRows.forEach((row) => {
+        const label = row.querySelector('.diag-row__label');
+        if (!label) return;
+        const sectionKey = label.textContent.trim();
+        
+        if (row.classList.contains('diag-row--loading')) return;
+
+        const state = sectionState[sectionKey];
+        if (!state || !state.animating) return;
+        if (state.version !== renderVersion) return; // Only animate on the render that created it
+
+        const valueEl = row.querySelector('.diag-row__value') || row.querySelector('.diag-row__instructions');
+        if (!valueEl) return;
+
+        const targetHtml = state.targetHtml;
+        valueEl.innerHTML = '';
+        typewriteHtml(valueEl, targetHtml, 8, () => {
+          state.animating = false;
+        });
+      });
+
+      scrollToBottom();
+    }
+
+    /**
+     * Build section data from the diagnostic response parameters.
+     * Returns an array of section descriptors for diffing.
+     */
+    function buildSectionData({ triageCategory: tc, reasoningSummary: rs, evidenceUsed: eu, instructions: ins, finalDisposition: fd, isStreaming: streaming, lang: lg }) {
+      const sections = [];
+      const isEs = lg === 'es';
+      const dotsHtml = `<span class="typing-indicator-inline"><span></span><span></span><span></span></span>`;
+
+      // Triage
+      if (tc) {
+        const displayCategory = tc.replace(/_/g, ' ');
+        sections.push({
+          key: 'Triage:',
+          text: displayCategory,
+          isLoading: false,
+          valueHtml: displayCategory,
+          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value diag-row__value--triage">${displayCategory}</span></div>`
+        });
+      } else if (streaming) {
+        sections.push({
+          key: 'Triage:',
+          text: '',
+          isLoading: true,
+          valueHtml: '',
+          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Clasificando' : 'Categorizing'}${dotsHtml}</span></div>`
+        });
+      }
+
+      // Why this action
+      const whyLabel = isEs ? 'Por qu\u00e9 esta acci\u00f3n' : 'Why this action';
+      if (rs) {
+        sections.push({
+          key: whyLabel + ':',
+          text: rs,
+          isLoading: false,
+          valueHtml: rs,
+          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value">${rs}</span></div>`
+        });
+      } else if (streaming) {
+        sections.push({
+          key: whyLabel + ':',
+          text: '',
+          isLoading: true,
+          valueHtml: '',
+          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Analizando diagn\u00f3stico' : 'Analyzing diagnosis'}${dotsHtml}</span></div>`
+        });
+      }
+
+      // Evidence
+      const evidenceLabel = isEs ? 'Evidencia' : 'Evidence';
+      if (eu) {
+        sections.push({
+          key: evidenceLabel + ':',
+          text: eu,
+          isLoading: false,
+          valueHtml: eu,
+          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value">${eu}</span></div>`
+        });
+      } else if (streaming) {
+        sections.push({
+          key: evidenceLabel + ':',
+          text: '',
+          isLoading: true,
+          valueHtml: '',
+          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span></div>`
+        });
+      }
+
+      // Action
+      const actionLabel = isEs ? 'Acci\u00f3n' : 'Action';
+      if (ins && ins.trim()) {
+        let cleanInstructions = ins.replace(/\\n/g, '\n');
+        if (/\b2\.\s/.test(cleanInstructions) && !/^(?:1\.\s|1\)\s|[\-\*\u2022])/.test(cleanInstructions.trim())) {
+          cleanInstructions = '1. ' + cleanInstructions;
+        }
+        cleanInstructions = cleanInstructions.replace(/(?<!\d)\s+(\d+)\.\s+/g, '\n$1. ');
+        const renderedInstructions = renderMarkdown(cleanInstructions.trim());
+        sections.push({
+          key: actionLabel + ':',
+          text: cleanInstructions.trim(),
+          isLoading: false,
+          valueHtml: renderedInstructions,
+          html: `<div class="diag-row diag-row--action"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions">${renderedInstructions}</div></div>`
+        });
+      } else if (streaming) {
+        sections.push({
+          key: actionLabel + ':',
+          text: '',
+          isLoading: true,
+          valueHtml: '',
+          html: `<div class="diag-row diag-row--action diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Generando gu\u00eda de reparaci\u00f3n' : 'Generating repair guide'}${dotsHtml}</div></div>`
+        });
+      }
+
+      // Disposition
+      const dispLabel = isEs ? 'Disposici\u00f3n' : 'Disposition';
+      if (fd) {
+        const dispText = getFriendlyDisposition(fd, lg);
+        sections.push({
+          key: dispLabel + ':',
+          text: dispText,
+          isLoading: false,
+          valueHtml: dispText,
+          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value diag-row__value--disposition">${dispText}</span></div>`
+        });
+      } else if (streaming) {
+        sections.push({
+          key: dispLabel + ':',
+          text: '',
+          isLoading: true,
+          valueHtml: '',
+          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Evaluando estado final' : 'Evaluating final status'}${dotsHtml}</span></div>`
+        });
+      }
+
+      return sections;
+    }
+
+    /**
+     * Typewrite HTML content into an element character by character.
+     * Handles HTML tags atomically (inserts whole tags at once).
+     */
+    function typewriteHtml(el, html, charsPerFrame, onDone) {
+      let i = 0;
+      const len = html.length;
+
+      function tick() {
+        if (i >= len) {
+          if (onDone) onDone();
+          return;
+        }
+
+        let chunkEnd = i;
+        let charsAdded = 0;
+        while (chunkEnd < len && charsAdded < charsPerFrame) {
+          if (html[chunkEnd] === '<') {
+            const tagEnd = html.indexOf('>', chunkEnd);
+            if (tagEnd !== -1) {
+              chunkEnd = tagEnd + 1;
+              continue;
+            }
+          }
+          chunkEnd++;
+          charsAdded++;
+        }
+
+        i = chunkEnd;
+        el.innerHTML = html.substring(0, i);
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
     }
 
     try {
@@ -725,7 +980,9 @@
                 renderLiveCard(false);
                 break;
               case 'done':
-                finalDisposition = data.finalDisposition || '';
+                if (data.finalDisposition) {
+                  finalDisposition = data.finalDisposition;
+                }
                 const finalSafetyNote = data.safetyNote || '';
                 if (finalSafetyNote) {
                   disclaimers.push(`SAFETY NOTE: ${finalSafetyNote}`);
@@ -743,6 +1000,7 @@
     }
 
     updateAssistantMessage(msgEl, {
+      query,
       agent: currentAgent,
       agentLabel: agentLabel,
       content: contentText || t('no_response'),
@@ -772,7 +1030,7 @@
   }
 
   function updateAssistantMessage(msgEl, opts) {
-    const { agent, agentLabel, content, thinking, sources, disclaimers, stats, triageCategory, finalDisposition, evidenceUsed } = opts;
+    const { query, agent, agentLabel, content, thinking, sources, disclaimers, stats, triageCategory, finalDisposition, evidenceUsed } = opts;
 
     msgEl.setAttribute('data-agent', agent);
 
@@ -924,6 +1182,26 @@
         discEl.appendChild(itemEl);
       });
       body.appendChild(discEl);
+    }
+
+    // Add Correction Button
+    if (query) {
+      const correctionBtnContainer = document.createElement('div');
+      correctionBtnContainer.className = 'flex justify-end mt-sm pt-sm border-t border-outline-variant/10';
+      correctionBtnContainer.innerHTML = `
+        <button class="btn-correct-ai flex items-center gap-1 text-[10px] font-label-mono text-secondary hover:text-primary transition-colors cursor-pointer" 
+                data-query="${escapeHtml(query)}" 
+                data-response="${escapeHtml(visibleFinalText)}">
+          <span class="material-symbols-outlined text-[14px]">edit_note</span> Correct AI Diagnosis
+        </button>
+      `;
+      body.appendChild(correctionBtnContainer);
+      
+      correctionBtnContainer.querySelector('.btn-correct-ai').addEventListener('click', (e) => {
+        const queryText = e.currentTarget.getAttribute('data-query');
+        const responseText = e.currentTarget.getAttribute('data-response');
+        openCorrectionModal(queryText, responseText);
+      });
     }
   }
 
@@ -1449,27 +1727,20 @@
     reader.onload = (e) => {
       currentImageBase64 = e.target.result;
       
-      // Update inline dropzone previews
-      if (imagePreview) imagePreview.src = currentImageBase64;
       if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
       if (dropzonePrompt) dropzonePrompt.style.display = 'none';
-      if (ocrStatus) ocrStatus.style.display = 'flex';
       
-      // Update sidebar vision dropzone previews
-      const sidebarPreview = document.getElementById('sidebar-image-preview');
       const sidebarPreviewContainer = document.getElementById('sidebar-image-preview-container');
       const sidebarPrompt = document.getElementById('sidebar-dropzone-prompt');
-      const sidebarOcr = document.getElementById('sidebar-ocr-status');
 
-      if (sidebarPreview) sidebarPreview.src = currentImageBase64;
       if (sidebarPreviewContainer) sidebarPreviewContainer.style.display = 'block';
       if (sidebarPrompt) sidebarPrompt.style.display = 'none';
-      if (sidebarOcr) sidebarOcr.style.display = 'flex';
 
-      setTimeout(() => {
-        if (ocrStatus) ocrStatus.style.display = 'none';
-        if (sidebarOcr) sidebarOcr.style.display = 'none';
-      }, 1500);
+      // Load image on canvas first
+      drawOCRCanvas([]);
+
+      // Call OCR
+      performOCR(file);
     };
     reader.readAsDataURL(file);
   }
@@ -1477,22 +1748,400 @@
   function clearImageSelection() {
     currentImageBase64 = null;
     
-    // Clear inline dropzone
-    if (imagePreview) imagePreview.src = '';
     if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
     if (dropzonePrompt) dropzonePrompt.style.display = 'flex';
     if (imageUploadInput) imageUploadInput.value = '';
 
-    // Clear sidebar vision dropzone
-    const sidebarPreview = document.getElementById('sidebar-image-preview');
     const sidebarPreviewContainer = document.getElementById('sidebar-image-preview-container');
     const sidebarPrompt = document.getElementById('sidebar-dropzone-prompt');
     const sidebarUploadInput = document.getElementById('image-upload-input-sidebar');
 
-    if (sidebarPreview) sidebarPreview.src = '';
     if (sidebarPreviewContainer) sidebarPreviewContainer.style.display = 'none';
     if (sidebarPrompt) sidebarPrompt.style.display = 'flex';
     if (sidebarUploadInput) sidebarUploadInput.value = '';
+  }
+
+  async function performOCR(fileOrBase64) {
+    if (ocrStatus) ocrStatus.style.display = 'flex';
+    const sidebarOcr = document.getElementById('sidebar-ocr-status');
+    if (sidebarOcr) sidebarOcr.style.display = 'flex';
+
+    try {
+      let res;
+      if (typeof fileOrBase64 === 'string') {
+        res = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: fileOrBase64 })
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('image', fileOrBase64);
+        res = await fetch('/api/ocr', {
+          method: 'POST',
+          body: formData
+        });
+      }
+
+      if (!res.ok) throw new Error('OCR request failed');
+      const data = await res.json();
+      console.log('OCR result:', data);
+
+      if (data.blocks) {
+        drawOCRCanvas(data.blocks);
+      }
+
+      if (data.fullText && data.fullText.trim()) {
+        chatInput.value = (chatInput.value + ' ' + data.fullText).trim();
+        autoResize();
+        sendBtn.disabled = !chatInput.value.trim();
+      }
+    } catch (err) {
+      console.error('OCR analysis failed:', err);
+    } finally {
+      if (ocrStatus) ocrStatus.style.display = 'none';
+      if (sidebarOcr) sidebarOcr.style.display = 'none';
+    }
+  }
+
+  function drawOCRCanvas(blocks) {
+    const inlineCanvas = document.getElementById('image-preview-canvas');
+    const sidebarCanvas = document.getElementById('sidebar-image-preview-canvas');
+
+    const drawOnCanvas = (canvas) => {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const imgObj = new Image();
+      imgObj.onload = () => {
+        canvas.width = imgObj.naturalWidth;
+        canvas.height = imgObj.naturalHeight;
+        ctx.drawImage(imgObj, 0, 0);
+
+        if (blocks && blocks.length > 0) {
+          blocks.forEach(block => {
+            if (block.bbox) {
+              const [x, y, w, h] = block.bbox;
+              ctx.strokeStyle = '#57f1db'; // mint green
+              ctx.lineWidth = Math.max(2, Math.round(canvas.width / 200));
+              ctx.strokeRect(x, y, w, h);
+              ctx.fillStyle = 'rgba(87, 241, 219, 0.15)';
+              ctx.fillRect(x, y, w, h);
+            }
+          });
+        }
+      };
+      imgObj.src = currentImageBase64;
+    };
+
+    drawOnCanvas(inlineCanvas);
+    drawOnCanvas(sidebarCanvas);
+  }
+
+  // ────────────────────────────────────────────
+  // P2P Swarm Integration
+  // ────────────────────────────────────────────
+  let swarmEventSource = null;
+
+  async function checkSwarmStatus() {
+    try {
+      const res = await fetch('/api/swarm/status');
+      if (!res.ok) throw new Error('Failed to get swarm status');
+      const data = await res.json();
+      updateSwarmUI(data);
+    } catch (err) {
+      console.error('Error checking swarm status:', err);
+    }
+  }
+
+  function updateSwarmUI(data) {
+    const badge = document.getElementById('swarm-status-badge');
+    const btnToggle = document.getElementById('btn-toggle-swarm');
+    const keyContainer = document.getElementById('swarm-key-container');
+    const peerKeyInput = document.getElementById('swarm-peer-key');
+    const peersCount = document.getElementById('swarm-peers-count');
+    const peersList = document.getElementById('swarm-peers-list');
+
+    if (!badge || !btnToggle) return;
+
+    if (data.isProviding) {
+      badge.className = 'text-primary font-bold flex items-center gap-1 font-label-mono text-[10px]';
+      badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse-glow"></span>ONLINE';
+      btnToggle.textContent = 'Stop Swarm Node';
+      if (keyContainer) keyContainer.classList.remove('hidden');
+      if (peerKeyInput) peerKeyInput.value = data.publicKey || '';
+    } else {
+      badge.className = 'text-error font-bold flex items-center gap-1 font-label-mono text-[10px]';
+      badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-error inline-block animate-pulse"></span>OFFLINE';
+      btnToggle.textContent = 'Start Swarm Node';
+      if (keyContainer) keyContainer.classList.add('hidden');
+    }
+
+    if (peersCount) peersCount.textContent = data.connectedPeers ? data.connectedPeers.length : 0;
+
+    if (peersList) {
+      peersList.innerHTML = '';
+      if (data.connectedPeers && data.connectedPeers.length > 0) {
+        data.connectedPeers.forEach(peer => {
+          const div = document.createElement('div');
+          div.className = 'flex justify-between items-center bg-surface-container-low p-1.5 rounded border border-outline-variant/30 text-[10px]';
+          div.innerHTML = `
+            <span class="truncate text-on-surface flex-1 font-label-mono" title="${peer.publicKey}">${peer.alias || peer.publicKey.substring(0, 8)}</span>
+            <button class="btn-disconnect-peer text-error hover:text-red-400 font-bold ml-1 px-1" data-key="${peer.publicKey}">&times;</button>
+          `;
+          div.querySelector('.btn-disconnect-peer').addEventListener('click', async (e) => {
+            const key = e.currentTarget.getAttribute('data-key');
+            await disconnectSwarmPeer(key);
+          });
+          peersList.appendChild(div);
+        });
+      } else {
+        peersList.innerHTML = '<div class="text-[10px] text-on-surface-variant/40 italic">No active connections.</div>';
+      }
+    }
+  }
+
+  async function toggleSwarm() {
+    try {
+      const resStatus = await fetch('/api/swarm/status');
+      const data = await resStatus.json();
+      const endpoint = data.isProviding ? '/api/swarm/stop' : '/api/swarm/start';
+      
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (!res.ok) throw new Error('Toggle swarm failed');
+      
+      await checkSwarmStatus();
+    } catch (err) {
+      console.error('Error toggling swarm provider:', err);
+    }
+  }
+
+  async function connectSwarmPeer(peerPublicKey) {
+    if (!peerPublicKey) return;
+    try {
+      const res = await fetch('/api/swarm/peers/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peerPublicKey })
+      });
+      if (!res.ok) throw new Error('Connect peer failed');
+      
+      document.getElementById('input-remote-peer-key').value = '';
+      await checkSwarmStatus();
+    } catch (err) {
+      console.error('Error connecting swarm peer:', err);
+      alert('Failed to connect to remote peer.');
+    }
+  }
+
+  async function disconnectSwarmPeer(peerPublicKey) {
+    try {
+      const res = await fetch('/api/swarm/peers/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peerPublicKey })
+      });
+      if (!res.ok) throw new Error('Disconnect peer failed');
+      await checkSwarmStatus();
+    } catch (err) {
+      console.error('Error disconnecting swarm peer:', err);
+    }
+  }
+
+  function setupSwarmSSE() {
+    if (swarmEventSource) swarmEventSource.close();
+    swarmEventSource = new EventSource('/api/swarm/events');
+    swarmEventSource.onmessage = (e) => {
+      try {
+        const event = JSON.parse(e.data);
+        console.log('Swarm Event:', event);
+        
+        if (event.type === 'peer_connected') {
+          addSystemChatNotification(`Peer Connected: ${event.data.peer.alias || event.data.peer.publicKey.substring(0, 8)}`);
+        } else if (event.type === 'peer_disconnected') {
+          addSystemChatNotification(`Peer Disconnected: ${event.data.peer.alias || event.data.peer.publicKey.substring(0, 8)}`);
+        } else if (event.type === 'delegation_success') {
+          addSystemChatNotification(`Inference delegated successfully to peer ${event.data.peerId.substring(0, 8)}...`);
+        } else if (event.type === 'delegation_fallback') {
+          addSystemChatNotification(`Peer delegation failed. Falling back to local inference engine.`);
+        }
+        
+        checkSwarmStatus();
+      } catch (err) {
+        // Silent error
+      }
+    };
+  }
+
+  function addSystemChatNotification(text) {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'message message--assistant';
+    msgEl.innerHTML = `
+      <div class="message__avatar"><span class="material-symbols-outlined">network_ping</span></div>
+      <div class="message__body">
+        <div class="message__content text-xs text-on-surface-variant font-label-mono bg-surface-container/20 border border-outline-variant/20 rounded p-sm">
+          <span>📡 ${text}</span>
+        </div>
+      </div>
+    `;
+    chatMessages.appendChild(msgEl);
+    scrollToBottom();
+  }
+
+  // ────────────────────────────────────────────
+  // Fine-Tuning Integration
+  // ────────────────────────────────────────────
+  let finetuneEventSource = null;
+  let lossChart = null;
+
+  function initLossChart() {
+    const canvas = document.getElementById('loss-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    lossChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Loss',
+          data: [],
+          borderColor: '#ffb4ab',
+          backgroundColor: 'rgba(255, 180, 171, 0.1)',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+            ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 8 } }
+          }
+        }
+      }
+    });
+  }
+
+  async function checkFinetuneStatus() {
+    try {
+      const res = await fetch('/api/finetune/status');
+      if (!res.ok) throw new Error('Failed to get finetune status');
+      const data = await res.json();
+      updateFinetuneUI(data);
+    } catch (err) {
+      console.error('Error checking finetune status:', err);
+    }
+  }
+
+  function updateFinetuneUI(data) {
+    const correctionsCount = document.getElementById('finetune-corrections-count');
+    const requiredCount = document.getElementById('finetune-required-count');
+    const badge = document.getElementById('finetune-status-badge');
+    const progressStats = document.getElementById('finetune-progress-stats');
+    const btnStart = document.getElementById('btn-start-finetune');
+
+    if (correctionsCount) correctionsCount.textContent = data.totalCorrections;
+    if (requiredCount) requiredCount.textContent = data.minimumRequired;
+
+    if (badge) {
+      badge.textContent = data.status;
+      if (data.status === 'running') {
+        badge.className = 'text-primary font-bold font-label-mono text-[10px] uppercase animate-pulse';
+      } else if (data.status === 'completed') {
+        badge.className = 'text-primary font-bold font-label-mono text-[10px] uppercase';
+      } else if (data.status === 'error') {
+        badge.className = 'text-error font-bold font-label-mono text-[10px] uppercase';
+      } else {
+        badge.className = 'text-on-surface-variant font-bold font-label-mono text-[10px] uppercase';
+      }
+    }
+
+    if (btnStart) {
+      if (data.status === 'running') {
+        btnStart.disabled = false;
+        btnStart.textContent = 'Cancel Training';
+        btnStart.className = 'w-full bg-error/10 border border-error/30 text-error hover:bg-error/20 font-label-mono text-[10px] uppercase rounded py-2 px-3 transition-all';
+      } else {
+        btnStart.disabled = !data.canTrain;
+        btnStart.textContent = 'Train MedPsy Model';
+        btnStart.className = 'w-full bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-label-mono text-[10px] uppercase rounded py-2 px-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+      }
+    }
+
+    if (progressStats) {
+      if (data.status === 'running') {
+        progressStats.classList.remove('hidden');
+        
+        const epVal = document.getElementById('finetune-stat-epoch');
+        const lossVal = document.getElementById('finetune-stat-loss');
+        const accVal = document.getElementById('finetune-stat-acc');
+        const etaVal = document.getElementById('finetune-stat-eta');
+
+        if (epVal) epVal.textContent = `${data.currentEpoch || 1} / ${data.totalBatches || 1}`;
+        if (lossVal) lossVal.textContent = data.latestLoss !== undefined && data.latestLoss !== null ? data.latestLoss.toFixed(4) : '0.00';
+        if (accVal) accVal.textContent = data.latestAccuracy !== undefined && data.latestAccuracy !== null ? (data.latestAccuracy * 100).toFixed(1) + '%' : '0.0%';
+        if (etaVal) etaVal.textContent = data.etaMs ? Math.round(data.etaMs / 1000) + 's' : '0s';
+      } else {
+        progressStats.classList.add('hidden');
+      }
+    }
+  }
+
+  async function handleFinetuneClick() {
+    try {
+      const resStatus = await fetch('/api/finetune/status');
+      const data = await resStatus.json();
+      const endpoint = data.status === 'running' ? '/api/finetune/cancel' : '/api/finetune/train';
+      
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (!res.ok) throw new Error('Finetuning action failed');
+      
+      await checkFinetuneStatus();
+    } catch (err) {
+      console.error('Error triggering finetune action:', err);
+    }
+  }
+
+  function setupFinetuneSSE() {
+    if (finetuneEventSource) finetuneEventSource.close();
+    finetuneEventSource = new EventSource('/api/finetune/events');
+    finetuneEventSource.onmessage = (e) => {
+      try {
+        const event = JSON.parse(e.data);
+        console.log('Finetune Event:', event);
+
+        if (event.type === 'progress') {
+          const progress = event.data;
+          if (progress.loss !== undefined && lossChart) {
+            lossChart.data.labels.push(lossChart.data.labels.length);
+            lossChart.data.datasets[0].data.push(progress.loss);
+            lossChart.update();
+          }
+        } else if (event.type === 'completed') {
+          addSystemChatNotification('LoRA Fine-tuning completed successfully! New weights are loaded.');
+          if (lossChart) {
+            lossChart.data.labels = [];
+            lossChart.data.datasets[0].data = [];
+            lossChart.update();
+          }
+        } else if (event.type === 'error') {
+          addSystemChatNotification(`LoRA Fine-tuning failed: ${event.data.error || 'Unknown error'}`);
+        } else if (event.type === 'correction_saved') {
+          checkFinetuneStatus();
+        }
+
+        checkFinetuneStatus();
+      } catch (err) {
+        // Silent error
+      }
+    };
   }
 
   // ────────────────────────────────────────────
@@ -2433,6 +3082,99 @@
     });
   }
 
+  // Register Correction Modal Logic
+  const correctionModal = document.getElementById('correction-modal');
+  const correctionInput = document.getElementById('correction-input');
+  
+  function openCorrectionModal(queryText, responseText) {
+    if (!correctionModal) return;
+    
+    document.getElementById('correction-original-query').textContent = queryText;
+    document.getElementById('correction-original-response').textContent = responseText;
+    correctionInput.value = responseText;
+    
+    const saveBtn = document.getElementById('btn-save-correction');
+    const newSaveBtn = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+    
+    newSaveBtn.addEventListener('click', async () => {
+      const correctedText = correctionInput.value.trim();
+      if (!correctedText) return;
+      
+      try {
+        const res = await fetch('/api/finetune/corrections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            originalQuery: queryText,
+            originalResponse: responseText,
+            correctedResponse: correctedText,
+            technician: 'Tech: 884-A',
+            documentId: documentSelect.value || 'General'
+          })
+        });
+        
+        if (!res.ok) throw new Error('Failed to save correction');
+        
+        correctionModal.classList.add('hidden');
+        checkFinetuneStatus();
+        alert(currentLang === 'es' ? 'Corrección guardada con éxito.' : 'Correction saved successfully.');
+      } catch (err) {
+        console.error('Error saving correction:', err);
+        alert(currentLang === 'es' ? 'Error al guardar la corrección.' : 'Failed to save correction.');
+      }
+    });
+    
+    correctionModal.classList.remove('hidden');
+  }
+
+  const cancelCorrectionBtn = document.getElementById('btn-cancel-correction');
+  if (cancelCorrectionBtn) {
+    cancelCorrectionBtn.addEventListener('click', () => {
+      correctionModal.classList.add('hidden');
+    });
+  }
+  if (correctionModal) {
+    correctionModal.addEventListener('click', (e) => {
+      if (e.target === correctionModal) correctionModal.classList.add('hidden');
+    });
+  }
+
+  // Swarm and Finetune Panel Event Listeners
+  const btnToggleSwarm = document.getElementById('btn-toggle-swarm');
+  if (btnToggleSwarm) {
+    btnToggleSwarm.addEventListener('click', toggleSwarm);
+  }
+  const btnCopySwarmKey = document.getElementById('btn-copy-swarm-key');
+  if (btnCopySwarmKey) {
+    btnCopySwarmKey.addEventListener('click', () => {
+      const keyInput = document.getElementById('swarm-peer-key');
+      if (keyInput) {
+        keyInput.select();
+        document.execCommand('copy');
+        
+        const prevText = btnCopySwarmKey.innerHTML;
+        btnCopySwarmKey.innerHTML = '<span class="material-symbols-outlined text-sm text-primary">done</span>';
+        setTimeout(() => {
+          btnCopySwarmKey.innerHTML = prevText;
+        }, 1000);
+      }
+    });
+  }
+  const btnConnectPeer = document.getElementById('btn-connect-peer');
+  if (btnConnectPeer) {
+    btnConnectPeer.addEventListener('click', () => {
+      const input = document.getElementById('input-remote-peer-key');
+      if (input && input.value.trim()) {
+        connectSwarmPeer(input.value.trim());
+      }
+    });
+  }
+  const btnStartFinetune = document.getElementById('btn-start-finetune');
+  if (btnStartFinetune) {
+    btnStartFinetune.addEventListener('click', handleFinetuneClick);
+  }
+
   // ────────────────────────────────────────────
   // Init
   // ────────────────────────────────────────────
@@ -2441,7 +3183,14 @@
   fetchSessions();
   checkHealth();
   initNeuralCanvas();
+  initLossChart();
+  checkSwarmStatus();
+  checkFinetuneStatus();
+  setupSwarmSSE();
+  setupFinetuneSSE();
   setInterval(checkHealth, 15000); // Poll every 15s
+  setInterval(checkSwarmStatus, 30000); // Poll swarm status every 30s
+  setInterval(checkFinetuneStatus, 30000); // Poll finetune status every 30s
   if (!chatInput.disabled) chatInput.focus();
 
   // Set default view on startup based on URL path
