@@ -115,7 +115,7 @@ graph TD
     
     SwarmManager -->|Option B: Peers Busy / Offline| LocalInference[Local Inference: MedPsy-4B]
     
-    RemoteCall -->|4. Handshake / Fallback check| ResponseStream[SSE Stream: /api/swarm/events]
+    RemoteCall -->|4. Handshake / Fallback check| ResponseStream["SSE Stream: /api/swarm/events"]
     LocalInference --> ResponseStream
     
     ResponseStream -->|5. Render badges & text| UI[Web Interface]
@@ -148,7 +148,7 @@ graph TD
     SDK -->|Epoch Step, Accuracy, Loss| TrainLoop(Training Loop)
     
     TrainLoop -->|Local LoRA Weights Update| MedPsyLLM[(MedPsy-4B Weights)]
-    TrainLoop -->|Stream Metrics via SSE| SSE[/api/train/events]
+    TrainLoop -->|Stream Metrics via SSE| SSE["SSE Stream: /api/train/events"]
     
     SSE -->|Real-time Data Stream| ChartJS[Chart.js Loss Curve Graph]
 ```
