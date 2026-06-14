@@ -108,9 +108,17 @@ All models fit comfortably in less than **5 GB** of memory:
 The project's performance logs and video demo were recorded on the following hardware:
 *   **CPU**: Intel Core i7-13650HX (14 cores, 20 logical processors)
 *   **GPU**: NVIDIA GeForce RTX 5060 Mobile (8 GB VRAM)
-*   **RAM**: 32 GB DDR5
+*   **RAM**: 32 GB DDR5 (4800 MT/s, 2 SODIMM slots)
 *   **OS**: Windows 11 Home (Version 23H2)
 *   **Runtime**: Node.js v22.15.0 / @qvac/sdk v0.7.0 / bare worker
+
+#### Hardware Verification Screenshots
+
+| CPU | RAM | GPU |
+|-----|-----|-----|
+| ![CPU](evidence/hw_cpu.png) | ![RAM](evidence/hw_ram.png) | ![GPU](evidence/hw_gpu.png) |
+
+> These screenshots were taken from Windows Task Manager on the development machine used for all demo runs and performance logs. See [EVIDENCE.md](EVIDENCE.md) for the full verification checklist.
 
 ---
 

@@ -122,38 +122,18 @@ npm run demo:log
 
 ## Hardware Verification
 
-To document your hardware for the submission:
+All performance logs and video demonstrations were recorded on the following hardware. Below are the verification screenshots from Windows Task Manager showing CPU, RAM, GPU, and the neural engine active on the dashboard.
 
-### Windows
+### 🖥️ Verification Screenshots
+| CPU | RAM | GPU | Dashboard RAM & Engine |
+|---|---|---|---|
+| ![CPU](evidence/hw_cpu.png) | ![RAM](evidence/hw_ram.png) | ![GPU](evidence/hw_gpu.png) | ![Dashboard](evidence/hw_dashboard.png) |
 
-```powershell
-# CPU
-Get-WmiObject -Class Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
+### System Specifications
+*   **CPU**: Intel Core i7-13650HX (14 cores, 20 logical processors)
+*   **GPU**: NVIDIA GeForce RTX 5060 Mobile (8 GB VRAM)
+*   **RAM**: 32 GB DDR5
+*   **OS**: Windows 11 Home (Version 23H2)
+*   **Runtime**: Node.js v22.15.0 / @qvac/sdk v0.7.0 / bare worker
 
-# RAM
-Get-WmiObject -Class Win32_PhysicalMemory | Measure-Object Capacity -Sum | ForEach-Object { "$($_.Sum / 1GB) GB" }
-
-# GPU
-Get-WmiObject -Class Win32_VideoController | Select-Object Name, AdapterRAM
-
-# OS
-Get-WmiObject -Class Win32_OperatingSystem | Select-Object Caption, Version, BuildNumber
-```
-
-### Linux
-
-```bash
-# CPU
-lscpu | grep "Model name"
-
-# RAM
-free -h
-
-# GPU
-nvidia-smi
-
-# OS
-uname -a && cat /etc/os-release
-```
-
-Include screenshots of these outputs in your DoraHacks submission.
+---
