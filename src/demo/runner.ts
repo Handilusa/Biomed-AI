@@ -29,8 +29,26 @@ async function main() {
   const logger = new StructuredLogger(config.logging.dir);
   const metrics = new MetricsCollector();
 
+  const logFile = logger.startSession('demo_run');
+
   try {
-    await modelManager.loadAll();
+    console.log('\n═══ Loading QVAC Base Models ═══');
+    const llmStartTime = Date.now();
+    await modelManager.loadLLM();
+    logger.logEvent('model_load', {
+      model: modelManager.getModelFilename('llm'),
+      duration_ms: Date.now() - llmStartTime,
+      status: 'success'
+    });
+
+    const embedStartTime = Date.now();
+    await modelManager.loadEmbeddings();
+    logger.logEvent('model_load', {
+      model: modelManager.getModelFilename('embeddings'),
+      duration_ms: Date.now() - embedStartTime,
+      status: 'success'
+    });
+    console.log('═══ Base models loaded ═══\n');
 
     const storePath = path.resolve(config.rag.dataDir, 'hyperdb');
     const store = new Corestore(storePath);
@@ -59,8 +77,6 @@ async function main() {
 
     const retriever = new RAGRetriever(modelManager, config, rag);
     const orchestrator = new Orchestrator(modelManager, config, retriever);
-
-    const logFile = logger.startSession('demo_run');
 
     for (const query of DEMO_QUERIES) {
       const requestId = randomUUID();
@@ -142,19 +158,41 @@ async function main() {
       console.log('─'.repeat(80));
     }
 
-    const session = logger.endSession();
-    const csvPath = logger.exportCSV(session.filepath);
-
-    console.log(`\n📁 Logs: ${session.filepath}`);
-    console.log(`📁 CSV:  ${csvPath}`);
-    
   } catch (err) {
     console.error('\n❌ Demo run failed:', err);
     process.exit(1);
   } finally {
     try {
-      await modelManager.unloadAll();
-    } catch { /* ignore */ }
+      if (modelManager.isLoaded('embeddings')) {
+        const embedModelFile = modelManager.getModelFilename('embeddings');
+        const unloadStartTime = Date.now();
+        await modelManager.unload('embeddings');
+        logger.logEvent('model_unload', {
+          model: embedModelFile,
+          duration_ms: Date.now() - unloadStartTime,
+          status: 'success'
+        });
+      }
+      if (modelManager.isLoaded('llm')) {
+        const llmModelFile = modelManager.getModelFilename('llm');
+        const unloadStartTime = Date.now();
+        await modelManager.unload('llm');
+        logger.logEvent('model_unload', {
+          model: llmModelFile,
+          duration_ms: Date.now() - unloadStartTime,
+          status: 'success'
+        });
+      }
+    } catch (unloadErr) {
+      console.error('Failed to unload models cleanly:', unloadErr);
+    }
+
+    // End session AFTER unloads so all lifecycle events are in the same file
+    const session = logger.endSession();
+    const csvPath = logger.exportCSV(session.filepath);
+
+    console.log(`\n📁 Logs: ${session.filepath}`);
+    console.log(`📁 CSV:  ${csvPath}`);
   }
 
   console.log('\n🎉 Demo run complete!');

@@ -26,11 +26,14 @@ This executes a fixed battery of 5 queries and generates structured logs in the 
 
 | ID | Type | Query |
 |----|------|-------|
-| tech-01 | Technical | SpO2 probe-off errors on patient monitor |
-| med-01 | Medical | Clinical risks of incorrect ventilator tidal volumes |
-| tech-02 | Technical | Infusion pump occlusion alarm troubleshooting |
-| med-02 | Medical | Defibrillator impedance importance |
-| other-01 | Other | Greeting (edge case) |
+| tech-01 | Technical | SpO2 readings on our patient monitor are showing intermittent "probe off" errors even though the sensor is properly connected to the patient. What should I check? |
+| tech-02 | Technical | Our infusion pump is showing an "occlusion" alarm but the IV line appears completely clear with no visible kinks. How do I troubleshoot this? |
+| tech-03 | Technical | I am getting an error code E-22 on the patient monitor. What does this mean and how do I fix it? |
+| tech-04 | Technical | The monitor turns on but powers off randomly after 30 seconds to 2 minutes. The battery shows 80% charge. |
+| tech-05 | Technical | The SpO2 module calibration failed verification during preventive maintenance. The readings are out of tolerance by 4%. |
+| tech-06 | Technical | The alarm limits reset to factory defaults every time the device is power cycled. Is this normal? |
+| tech-07-es | Technical (ES) | La bomba marca oclusión pero la línea está libre y los settings de presión de oclusión están configurados al mínimo. |
+| med-01 | Clinical (Safety) | What are the clinical risks if a mechanical ventilator delivers incorrect tidal volumes to a patient? Why is this dangerous? |
 
 ---
 
@@ -45,7 +48,7 @@ Each line is a JSON object with the following fields:
 | `timestamp` | string | ISO 8601 timestamp of the request |
 | `request_id` | string | UUID identifying the request |
 | `agent` | string | Agent that handled the query: `technical`, `medical`, or `router` |
-| `model` | string | Exact model filename used (e.g., `MedPsy-4B-Q4_K_M.gguf`) |
+| `model` | string | Exact model filename used (e.g., `medpsy-4b-q4_k_m-imat.gguf`) |
 | `query` | string | The user's original query text |
 | `intent` | string | Classified intent: `technical_device_issue`, `medical_educational_context`, or `other` |
 | `prompt_tokens` | number | Number of tokens in the prompt sent to the model |
@@ -64,7 +67,7 @@ Each line is a JSON object with the following fields:
   "timestamp": "2026-06-15T10:30:00.000Z",
   "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "agent": "technical",
-  "model": "MedPsy-4B-Q4_K_M.gguf",
+  "model": "medpsy-4b-q4_k_m-imat.gguf",
   "query": "The SpO2 readings on our patient monitor are showing intermittent 'probe off' errors...",
   "intent": "technical_device_issue",
   "prompt_tokens": 1250,

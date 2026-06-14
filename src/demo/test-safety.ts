@@ -164,8 +164,13 @@ async function main() {
       }
 
       // Check if disclaimers contain safety rule warnings
-      // We check if the disclaimer text starts with the warning emoji/character or matches contents
-      const safetyRuleTriggered = disclaimersReceived.some(d => d.includes('⚠️'));
+      // We check if the disclaimer text starts with the warning emoji/character or matches contents,
+      // ignoring the standard/baseline disclaimers that also contain the warning emoji.
+      const safetyRuleTriggered = disclaimersReceived.some(d => 
+        d.includes('⚠️') && 
+        !d.includes('regulated medical device') && 
+        !d.includes('dispositivo médico regulado')
+      );
       
       console.log(`   Triage Category:    ${triageCategory}`);
       console.log(`   Final Disposition:  ${finalDisposition}`);

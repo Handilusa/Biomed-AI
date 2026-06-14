@@ -91,7 +91,7 @@ function envInt(key: string, fallback: number): number {
 export function loadConfig(): AppConfig {
   loadEnv();
   const modelDir = resolve(env('MODEL_DIR', './models'));
-  const llmFile = env('LLM_MODEL_FILE', 'MedPsy-4B-Q4_K_M.gguf');
+  const llmFile = env('LLM_MODEL_FILE', 'medpsy-4b-q4_k_m-imat.gguf');
   const embedFile = env('EMBED_MODEL_FILE', 'nomic-embed-text-v1.5.Q4_K_M.gguf');
 
   const config: AppConfig = {
