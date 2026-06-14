@@ -130,7 +130,7 @@ All performance logs and video demonstrations were recorded on the following har
 ### 🖥️ Verification Screenshots
 | CPU | RAM | GPU | Dashboard RAM & Engine |
 |---|---|---|---|
-| ![CPU](evidence/verify_cpu.png) | ![RAM](evidence/verify_ram.png) | ![GPU](evidence/verify_gpu.png) | ![Dashboard](evidence/verify_dashboard.png) |
+| ![CPU](evidence/verify_cpu.png?v=2) | ![RAM](evidence/verify_ram.png?v=2) | ![GPU](evidence/verify_gpu.png?v=2) | ![Dashboard](evidence/verify_dashboard.png?v=2) |
 
 ### System Specifications
 *   **CPU**: Intel Core i7-13650HX (14 cores, 20 logical processors)
