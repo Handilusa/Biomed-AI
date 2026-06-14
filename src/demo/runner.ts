@@ -4,6 +4,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { loadConfig, validateConfig } from '../config.js';
+import type { LogEntry, TriageCategory, FinalDisposition } from '../types.js';
 import { ModelManager } from '../models/manager.js';
 import { RAGRetriever } from '../rag/retriever.js';
 import { StructuredLogger } from '../logging/logger.js';
@@ -70,8 +71,8 @@ async function main() {
       
       const gen = orchestrator.processQuery(query.query, { uiLanguage: 'en', responseLanguage: 'en', evidenceMode: 'original' }, query.documentId);
       
-      let triageCategory = '';
-      let finalDisposition = '';
+      let triageCategory: TriageCategory | undefined;
+      let finalDisposition: FinalDisposition | undefined;
       let promptTokens = 0;
       let completionTokens = 0;
       let ttftMs = 0;
@@ -107,7 +108,7 @@ async function main() {
           promptTokens += agentStats.prompt_tokens || 0;
           completionTokens += agentStats.completion_tokens || 0;
         } else if (event.type === 'done') {
-          finalDisposition = (event.data as any).finalDisposition || '';
+          finalDisposition = (event.data as any).finalDisposition;
           console.log(`   Final Disposition: ${finalDisposition}`);
         }
       }
@@ -115,7 +116,7 @@ async function main() {
       const totalTimeMs = Math.round(performance.now() - startTime);
       const tokensPerSecond = completionTokens > 0 ? parseFloat((completionTokens / (totalTimeMs / 1000)).toFixed(1)) : 0;
 
-      const logEntry = {
+      const logEntry: LogEntry = {
         timestamp: new Date().toISOString(),
         request_id: requestId,
         agent: 'orchestrator',

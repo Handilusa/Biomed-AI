@@ -16,18 +16,17 @@ interface ModelDownload {
 
 const MODELS: ModelDownload[] = [
   {
-    name: 'MedPsy-4B Q4_K_M (Main LLM)',
-    filename: 'MedPsy-4B-Q4_K_M.gguf',
-    url: 'https://huggingface.co/qvac/MedPsy-4B-GGUF/resolve/main/MedPsy-4B-Q4_K_M.gguf',
+    name: 'MedPsy-4B Q4_K_M (imatrix calibrated Main LLM)',
+    filename: 'medpsy-4b-q4_k_m-imat.gguf',
+    url: 'https://huggingface.co/qvac/MedPsy-4B-GGUF/resolve/main/medpsy-4b-q4_k_m-imat.gguf',
     sizeApprox: '~2.7 GB',
   },
-  // TODO: Add embedding model once the exact QVAC embedding model GGUF is identified
-  // {
-  //   name: 'Embedding Model (for RAG)',
-  //   filename: 'all-MiniLM-L6-v2.Q8_0.gguf',
-  //   url: 'https://huggingface.co/...',
-  //   sizeApprox: '~0.5 GB',
-  // },
+  {
+    name: 'Nomic Embed Text v1.5 Q4_K_M (Embeddings model for RAG)',
+    filename: 'nomic-embed-text-v1.5.Q4_K_M.gguf',
+    url: 'https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-embed-text-v1.5.Q4_K_M.gguf',
+    sizeApprox: '~80 MB',
+  },
 ];
 
 async function main() {

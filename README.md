@@ -37,7 +37,7 @@ BioMed AI complies strictly with all rules of the **QVAC Hackathon: Unleash Edge
 
 ---
 
-## 🏗️ Architectural Architecture: The 4 Local Columns
+## 🏗️ System Architecture: The 4 Local Columns
 
 All inference, embeddings, vector databases, and model training tasks are executed **100% locally on-device by the QVAC SDK and QVAC RAG**. There are zero mocks and zero cloud dependencies.
 
@@ -104,9 +104,21 @@ All models fit comfortably in less than **5 GB** of memory:
 *   **Embedding Model**: ~0.5 GB
 *   **Total AI RAM Footprint**: **~4.6 GB**
 
+### 🔬 Tested Demonstration Hardware (Auditable)
+The project's performance logs and video demo were recorded on the following hardware:
+*   **CPU**: Intel Core i7-13650HX (14 cores, 20 logical processors)
+*   **GPU**: NVIDIA GeForce RTX 5060 Mobile (8 GB VRAM)
+*   **RAM**: 32 GB DDR5
+*   **OS**: Windows 11 Home (Version 23H2)
+*   **Runtime**: Node.js v22.15.0 / @qvac/sdk v0.7.0 / bare worker
+
 ---
 
 ## ⚙️ Configuration & Setup
+
+### 📋 Prerequisites
+*   **Node.js**: `v20.0.0` or higher (tested on `v22.15.0`)
+*   **Git**: For cloning the repository
 
 ### 1. Disclosed Remote API Calls
 Per Hackathon rules, all external API calls are documented in [remote_apis.json](remote_apis.json). There are **zero cloud AI dependencies**. The app functions entirely offline once models are downloaded.
@@ -133,12 +145,12 @@ Downloads the MedPsy-4B GGUF weights, OCR engine, and embedding models:
 npm run download:models
 ```
 
-### 5. Ingest Hospital Manuals
+### 5. Ingest Hospital Manuals (Optional)
 Populate the RAG Vector Database (HyperDB) with technical manuals:
 ```bash
 npm run ingest
 ```
-*Note: Demo manuals are located in `data/manuals/`.*
+*Note: Demo manuals are located in `data/manuals/`. Running this step is optional because the backend will automatically scan and auto-ingest all documents in the `data/manuals/` folder on first server startup if the database is empty.*
 
 ---
 
