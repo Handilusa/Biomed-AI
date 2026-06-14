@@ -116,7 +116,7 @@ The project's performance logs and video demo were recorded on the following har
 
 | CPU | RAM | GPU |
 |-----|-----|-----|
-| ![CPU](evidence/hw_cpu.png) | ![RAM](evidence/hw_ram.png) | ![GPU](evidence/hw_gpu.png) |
+| ![CPU](evidence/verify_cpu.png) | ![RAM](evidence/verify_ram.png) | ![GPU](evidence/verify_gpu.png) |
 
 > These screenshots were taken from Windows Task Manager on the development machine used for all demo runs and performance logs. See [EVIDENCE.md](EVIDENCE.md) for the full verification checklist.
 
