@@ -10,6 +10,7 @@ models/*.bin
 
 # Logs (generated at runtime)
 logs/*.json
+logs/*.jsonl
 logs/*.csv
 !logs/.gitkeep
 !logs/example_demo_run.json
@@ -18,6 +19,7 @@ logs/*.csv
 *.sqlite
 *.sqlite3
 *.db
+data/hyperdb/
 
 # Environment
 .env
