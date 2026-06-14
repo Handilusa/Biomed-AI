@@ -61,7 +61,8 @@
       detail_category: 'Triage Category',
       detail_document: 'Manual Document',
       detail_agent: 'Processing Agent',
-      detail_metrics: 'Performance Metrics'
+      detail_metrics: 'Performance Metrics',
+      no_manuals_suggestions: 'Upload PDF manuals to see diagnostic suggestions.'
     },
     es: {
       disclaimer_banner: 'Herramienta de referencia de campo. Verifica siempre la lógica de servicio con especificaciones oficiales.',
@@ -116,7 +117,8 @@
       detail_category: 'Categoría de Triaje',
       detail_document: 'Manual / Documento',
       detail_agent: 'Agente de Procesamiento',
-      detail_metrics: 'Métricas de Rendimiento'
+      detail_metrics: 'Métricas de Rendimiento',
+      no_manuals_suggestions: 'Sube manuales en PDF para ver sugerencias de diagnóstico.'
     },
   };
 
@@ -126,6 +128,7 @@
   let currentLang = 'en';
   let isStreaming = false;
   let lastSelectedDoc = null;
+  let cachedDocuments = [];
   const sessionStats = { queries: 0, ttftSum: 0, tpsSum: 0, totalTokens: 0 };
 
   // ────────────────────────────────────────────
@@ -185,6 +188,7 @@
       btn.classList.toggle('lang-toggle__btn--active', btn.dataset.lang === lang);
     });
     applyI18n();
+    renderDynamicChips(cachedDocuments);
   }
 
   // ────────────────────────────────────────────
@@ -1245,10 +1249,11 @@
       const modelsValue = $('#models-status');
       if (modelsCard && modelsIndicator && modelsValue) {
         if (data.models.totalModelsLoaded > 0) {
+          const totalEngines = data.models.totalModelsLoaded + 2; // +OCR +NMT always available on-demand
           modelsIndicator.className = 'status-card__indicator status-card__indicator--ok w-2 h-2 rounded-full';
-          modelsValue.textContent = `${data.models.totalModelsLoaded} loaded`;
+          modelsValue.textContent = `${totalEngines} ready`;
           const dModels = document.getElementById('dash-models-count');
-          if (dModels) dModels.textContent = data.models.totalModelsLoaded;
+          if (dModels) dModels.textContent = totalEngines;
         } else {
           modelsIndicator.className = 'status-card__indicator status-card__indicator--error w-2 h-2 rounded-full';
           modelsValue.textContent = 'None loaded';
@@ -1328,15 +1333,17 @@
         documentSelect.remove(1);
       }
       
-      if (data.documents && data.documents.length > 0) {
-        data.documents.forEach(doc => {
+      cachedDocuments = data.documents || [];
+      
+      if (cachedDocuments.length > 0) {
+        cachedDocuments.forEach(doc => {
           const opt = document.createElement('option');
           opt.value = doc;
           opt.textContent = doc;
           documentSelect.appendChild(opt);
         });
         
-        if (prevSelected && data.documents.includes(prevSelected)) {
+        if (prevSelected && cachedDocuments.includes(prevSelected)) {
           documentSelect.value = prevSelected;
         }
 
@@ -1410,12 +1417,121 @@
         }
       }
       
+      renderDynamicChips(cachedDocuments);
       updateInputState();
     } catch (err) {
       console.error('Error fetching documents:', err);
     }
   }
   
+  function renderDynamicChips(documents) {
+    const chipsContainer = $('.welcome-message__chips');
+    if (!chipsContainer) return;
+
+    if (!documents || documents.length === 0) {
+      chipsContainer.innerHTML = `
+        <div class="col-span-2 text-center py-6 text-xs text-on-surface-variant/60 bg-surface-container/30 border border-dashed border-outline-variant/50 rounded p-md">
+          <span class="material-symbols-outlined block text-[32px] text-on-surface-variant/40 mb-2">upload_file</span>
+          ${t('no_manuals_suggestions')}
+        </div>
+      `;
+      return;
+    }
+
+    // Pick up to 4 documents
+    const displayDocs = documents.slice(0, 4);
+    chipsContainer.innerHTML = '';
+
+    displayDocs.forEach((doc, idx) => {
+      // Clean up the name for display
+      let displayName = doc
+        .replace(/^MT\s+/i, '')
+        .replace(/^MT-+/i, '')
+        .replace(/\.pdf$/i, '')
+        .replace(/\.md$/i, '')
+        .replace(/\.txt$/i, '')
+        .replace(/_/g, ' ')
+        .trim();
+      
+      // Shorten if too long
+      if (displayName.length > 30) {
+        displayName = displayName.substring(0, 27) + '...';
+      }
+
+      // Generate queries in the selected language
+      const isEs = currentLang === 'es';
+      let icon = 'precision_manufacturing';
+      let title = displayName;
+      let subtitle = '';
+      let query = '';
+
+      const lowerDoc = doc.toLowerCase();
+      if (lowerDoc.includes('oximeter') || lowerDoc.includes('spo2') || lowerDoc.includes('pulse')) {
+        icon = 'monitor_heart';
+        subtitle = isEs ? 'Problemas de sensor / medición' : 'Sensor / measurement issues';
+        query = isEs 
+          ? `¿Cómo soluciono errores de lectura intermitente o "probe off" en el equipo ${displayName}?`
+          : `How do I troubleshoot intermittent readings or "probe off" errors on the ${displayName}?`;
+      } else if (lowerDoc.includes('pump') || lowerDoc.includes('infusion') || lowerDoc.includes('d3d2')) {
+        icon = 'vaccines';
+        subtitle = isEs ? 'Alarmas de oclusión / flujo' : 'Occlusion / flow alarms';
+        query = isEs
+          ? `Nuestra bomba ${displayName} muestra una alarma de oclusión pero la línea parece libre. ¿Cómo lo soluciono?`
+          : `Our ${displayName} pump shows an occlusion alarm but the line appears clear. How do I troubleshoot this?`;
+      } else if (lowerDoc.includes('ventilator') || lowerDoc.includes('resp')) {
+        icon = 'air';
+        subtitle = isEs ? 'Volumen tidal / presión' : 'Tidal volume / pressure';
+        query = isEs
+          ? `¿Cómo calibro o soluciono problemas de volumen tidal en el ventilador ${displayName}?`
+          : `How do I calibrate or troubleshoot tidal volume issues on the ${displayName} ventilator?`;
+      } else if (lowerDoc.includes('defib') || lowerDoc.includes('aed')) {
+        icon = 'bolt';
+        subtitle = isEs ? 'Impedancia / descarga' : 'Impedance / discharge';
+        query = isEs
+          ? `¿Cómo soluciono problemas de impedancia de electrodos en el desfibrilador ${displayName}?`
+          : `How do I troubleshoot electrode impedance or shock errors on the ${displayName} defibrillator?`;
+      } else {
+        if (idx % 2 === 0) {
+          icon = 'build';
+          subtitle = isEs ? 'Guía de fallos comunes' : 'Common fault guide';
+          query = isEs
+            ? `¿Cuáles son los códigos de error más comunes y cómo se solucionan en el manual de ${displayName}?`
+            : `What are the most common error codes and troubleshooting steps in the ${displayName} manual?`;
+        } else {
+          icon = 'settings';
+          subtitle = isEs ? 'Mantenimiento / Calibración' : 'Maintenance / Calibration';
+          query = isEs
+            ? `¿Cómo se realiza la calibración y verificación de mantenimiento preventivo para ${displayName}?`
+            : `How do I perform calibration and preventive maintenance verification for ${displayName}?`;
+        }
+      }
+
+      const button = document.createElement('button');
+      button.className = "chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left";
+      button.setAttribute('data-query', query);
+
+      button.innerHTML = `
+        <span class="chip__icon group-hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-[20px]">${icon}</span>
+        </span>
+        <div class="min-w-0 flex-1">
+          <h4 class="font-bold text-on-surface text-xs group-hover:text-primary transition-colors truncate">${title}</h4>
+          <p class="text-[10px] text-on-surface-variant mt-1 truncate">${subtitle}</p>
+        </div>
+      `;
+
+      button.addEventListener('click', () => {
+        documentSelect.value = doc;
+        updateInputState();
+        if (query && !isStreaming) {
+          sendQueryV2(query);
+        }
+      });
+
+      chipsContainer.appendChild(button);
+    });
+  }
+
   const ASSET_REGISTRY = {
     'nellcor': {
       name: 'Nellcor PM1000',
@@ -1470,7 +1586,19 @@
 
       // Find asset mapping
       const key = Object.keys(ASSET_REGISTRY).find(k => documentSelect.value.toLowerCase().includes(k)) || 'default';
-      const asset = ASSET_REGISTRY[key];
+      const asset = { ...ASSET_REGISTRY[key] };
+      const fileName = documentSelect.value.split(/[\\/]/).pop();
+
+      if (key === 'default') {
+        asset.name = fileName
+          .replace(/^MT\s+/i, '')
+          .replace(/^MT-+/i, '')
+          .replace(/\.pdf$/i, '')
+          .replace(/\.md$/i, '')
+          .replace(/\.txt$/i, '')
+          .replace(/_/g, ' ')
+          .trim();
+      }
 
       if (documentSelect.value !== lastSelectedDoc) {
         lastSelectedDoc = documentSelect.value;
@@ -1487,16 +1615,25 @@
         // Clear chat UI
         chatMessages.innerHTML = '';
         if (welcomeMessage) {
-          welcomeMessage.style.display = 'none';
+          chatMessages.appendChild(welcomeMessage);
+          welcomeMessage.style.display = 'flex';
         }
 
         // Add a system notification about the new session in the chat
         const transitionMsg = document.createElement('div');
         transitionMsg.className = 'message message--assistant';
         const isEs = currentLang === 'es';
-        const msgText = isEs 
-          ? `Iniciada nueva sesión de diagnóstico para: <strong>${asset.name}</strong> (SN: ${asset.sn}). Manual de referencia cargado.`
-          : `Started new diagnostic session for: <strong>${asset.name}</strong> (SN: ${asset.sn}). Reference manual loaded.`;
+        
+        let msgText = '';
+        if (key === 'default') {
+          msgText = isEs 
+            ? `Iniciada nueva sesión de diagnóstico. Manual de referencia cargado: <strong>${fileName}</strong>.`
+            : `Started new diagnostic session. Reference manual loaded: <strong>${fileName}</strong>.`;
+        } else {
+          msgText = isEs 
+            ? `Iniciada nueva sesión de diagnóstico para: <strong>${asset.name}</strong> (SN: ${asset.sn}). Manual de referencia cargado: <strong>${fileName}</strong>.`
+            : `Started new diagnostic session for: <strong>${asset.name}</strong> (SN: ${asset.sn}). Reference manual loaded: <strong>${fileName}</strong>.`;
+        }
 
         transitionMsg.innerHTML = `
           <div class="message__avatar"><span class="material-symbols-outlined">build</span></div>
@@ -1580,6 +1717,19 @@
   // Quick chips
   document.querySelectorAll('.chip').forEach((chip) => {
     chip.addEventListener('click', () => {
+      if (!documentSelect.value) {
+        // Try to auto-select manual based on data-manual-pattern
+        const pattern = chip.dataset.manualPattern;
+        if (pattern) {
+          const regex = new RegExp(pattern, 'i');
+          const option = Array.from(documentSelect.options).find(opt => regex.test(opt.value));
+          if (option) {
+            documentSelect.value = option.value;
+            updateInputState();
+          }
+        }
+      }
+
       if (!documentSelect.value) {
         alert(currentLang === 'es' ? 'Por favor, selecciona un manual de equipo primero.' : 'Please select an equipment manual first.');
         documentSelect.focus();
@@ -2489,7 +2639,7 @@
       const agentName = entry.agent || 'orchestrator';
       const docName = entry.selected_document || 'General';
       const triageCat = entry.triage_category ? entry.triage_category.replace(/_/g, ' ') : '';
-      const techId = getTechnicianId(entry.request_id || entry.timestamp) === 'tech-current' ? 'Tech: 884-A' : 'Tech: 291-B';
+      const techId = getTechnicianId(entry.request_id || entry.timestamp) === 'tech-current' ? 'Tech: ' + (localStorage.getItem('biomed_profile_name') || 'J. Doe') : 'Tech: 291-B';
 
       if (isEscalated) {
         card.className = "bg-surface-container-low border border-error/30 rounded p-5 flex flex-col gap-4 hover:border-error/60 hover:bg-surface-container transition-all group relative overflow-hidden cursor-pointer";
@@ -2586,7 +2736,7 @@
         hour: '2-digit', minute: '2-digit'
       });
       
-      const techId = getTechnicianId(entry.request_id || entry.timestamp) === 'tech-current' ? 'Tech: 884-A' : 'Tech: 291-B';
+      const techId = getTechnicianId(entry.request_id || entry.timestamp) === 'tech-current' ? 'Tech: ' + (localStorage.getItem('biomed_profile_name') || 'J. Doe') : 'Tech: 291-B';
       const isEscalated = entry.final_disposition === 'escalate';
       const disposition = entry.final_disposition || 'completed';
       const statusLabel = isEscalated ? 'ESCALATED' : (disposition === 'completed' ? 'COMPLETED' : disposition.replace(/_/g, ' ').toUpperCase());
@@ -3109,7 +3259,7 @@
             originalQuery: queryText,
             originalResponse: responseText,
             correctedResponse: correctedText,
-            technician: 'Tech: 884-A',
+            technician: 'Tech: ' + (localStorage.getItem('biomed_profile_name') || 'J. Doe'),
             documentId: documentSelect.value || 'General'
           })
         });
@@ -3178,6 +3328,95 @@
   // ────────────────────────────────────────────
   // Init
   // ────────────────────────────────────────────
+  
+  // Initialize Profile Customization
+  const profileNameEl = document.getElementById('sidebar-profile-name');
+  const profileRoleEl = document.getElementById('sidebar-profile-role');
+  
+  if (profileNameEl && profileRoleEl) {
+    const isEs = currentLang === 'es';
+    const defaultName = isEs ? 'Escribe tu nombre' : 'Type name here';
+    const defaultRole = isEs ? 'Escribe tu rol' : 'Type role here';
+
+    const savedName = localStorage.getItem('biomed_profile_name');
+    const savedRole = localStorage.getItem('biomed_profile_role');
+    
+    if (savedName && savedName !== defaultName) {
+      profileNameEl.textContent = savedName;
+      profileNameEl.classList.remove('opacity-50');
+    } else {
+      profileNameEl.textContent = defaultName;
+      profileNameEl.classList.add('opacity-50');
+    }
+
+    if (savedRole && savedRole !== defaultRole) {
+      profileRoleEl.textContent = savedRole;
+      profileRoleEl.classList.remove('opacity-50');
+    } else {
+      profileRoleEl.textContent = defaultRole;
+      profileRoleEl.classList.add('opacity-50');
+    }
+
+    const updateFilterOption = () => {
+      const currentName = localStorage.getItem('biomed_profile_name') || 'Current Tech';
+      const techOption = document.querySelector('#history-tech-filter option[value="tech-current"]');
+      if (techOption) {
+        techOption.textContent = `Tech: ${currentName}`;
+      }
+    };
+
+    profileNameEl.addEventListener('focus', () => {
+      if (profileNameEl.textContent.trim() === defaultName) {
+        profileNameEl.textContent = '';
+        profileNameEl.classList.remove('opacity-50');
+      }
+    });
+
+    profileNameEl.addEventListener('blur', () => {
+      const name = profileNameEl.textContent.trim();
+      if (!name || name === defaultName) {
+        profileNameEl.textContent = defaultName;
+        profileNameEl.classList.add('opacity-50');
+        localStorage.removeItem('biomed_profile_name');
+      } else {
+        localStorage.setItem('biomed_profile_name', name);
+        profileNameEl.classList.remove('opacity-50');
+      }
+      updateFilterOption();
+    });
+
+    profileRoleEl.addEventListener('focus', () => {
+      if (profileRoleEl.textContent.trim() === defaultRole) {
+        profileRoleEl.textContent = '';
+        profileRoleEl.classList.remove('opacity-50');
+      }
+    });
+
+    profileRoleEl.addEventListener('blur', () => {
+      const role = profileRoleEl.textContent.trim();
+      if (!role || role === defaultRole) {
+        profileRoleEl.textContent = defaultRole;
+        profileRoleEl.classList.add('opacity-50');
+        localStorage.removeItem('biomed_profile_role');
+      } else {
+        localStorage.setItem('biomed_profile_role', role);
+        profileRoleEl.classList.remove('opacity-50');
+      }
+    });
+
+    const preventEnter = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.blur();
+      }
+    };
+    profileNameEl.addEventListener('keydown', preventEnter);
+    profileRoleEl.addEventListener('keydown', preventEnter);
+    
+    // Initial update of option text
+    updateFilterOption();
+  }
+
   applyI18n();
   fetchDocuments();
   fetchSessions();

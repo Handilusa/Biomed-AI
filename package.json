@@ -14,7 +14,7 @@
     "ingest": "tsx scripts/ingest-docs.ts",
     "demo:log": "tsx src/demo/runner.ts",
     "download:models": "tsx scripts/download-models.ts",
-    "postinstall": "node --input-type=module scripts/patch-qvac-rag.js"
+    "postinstall": "node scripts/patch-qvac-rag.js"
   },
   "dependencies": {
     "@qvac/rag": "latest",

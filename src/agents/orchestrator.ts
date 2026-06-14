@@ -24,10 +24,16 @@ export class Orchestrator {
   }
 
   private detectLang(text: string): 'en' | 'es' {
-    const esWords = ['el', 'la', 'los', 'las', 'de', 'que', 'en', 'un', 'una', 'es', 'falla', 'error', 'pantalla', 'equipo'];
+    const esWords = ['el', 'la', 'los', 'las', 'de', 'que', 'en', 'un', 'una', 'es', 'falla', 'pantalla', 'equipo', 'como', 'cómo', 'para', 'por', 'con', 'del', 'al', 'se'];
+    const enWords = ['the', 'of', 'and', 'to', 'a', 'in', 'is', 'that', 'it', 'he', 'was', 'for', 'on', 'are', 'as', 'with', 'his', 'they', 'i', 'at', 'be', 'this', 'have', 'from', 'or', 'one', 'had', 'by', 'but', 'not', 'what', 'all', 'were', 'we', 'when', 'your', 'can', 'said', 'there', 'use', 'an', 'each', 'which', 'she', 'do', 'how', 'their', 'if', 'will', 'up', 'other', 'about', 'out', 'many', 'then', 'them', 'these', 'so', 'some', 'her', 'would', 'make', 'like', 'him', 'into', 'time', 'has', 'look', 'two', 'more', 'write', 'go', 'see'];
     const words = text.toLowerCase().split(/\W+/);
     const esCount = words.filter(w => esWords.includes(w)).length;
-    return esCount > 0 ? 'es' : 'en';
+    const enCount = words.filter(w => enWords.includes(w)).length;
+    
+    if (esCount === 0 && enCount === 0) {
+      return 'en'; // default to English
+    }
+    return esCount > enCount ? 'es' : 'en';
   }
 
   async *processQuery(

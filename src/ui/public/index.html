@@ -247,8 +247,8 @@
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant">person</span>
           </div>
           <div class="flex flex-col min-w-0">
-            <span class="font-label-mono text-label-mono text-on-surface leading-none">J. Doe</span>
-            <span class="text-[10px] text-primary mt-1">Level 3 Tech</span>
+            <span class="font-label-mono text-label-mono text-on-surface leading-none hover:text-primary focus:text-primary outline-none cursor-pointer" id="sidebar-profile-name" contenteditable="true" title="Click to edit name">J. Doe</span>
+            <span class="text-[10px] text-primary mt-1 hover:brightness-125 focus:brightness-125 outline-none cursor-pointer" id="sidebar-profile-role" contenteditable="true" title="Click to edit role">Level 3 Tech</span>
           </div>
         </div>
         <span class="block text-[10px] text-on-surface-variant/40 mt-3 mb-2">v0.1.0 • QVAC Hackathon 2026</span>
@@ -346,12 +346,12 @@
                       <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                       MedPsy-4B-Q4_K_M-iMat
                     </span>
-                    <span class="text-xs bg-secondary/10 border border-secondary/20 text-secondary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
-                      <span class="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse"></span>
+                    <span class="text-xs bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                       Bergamot-NMT
                     </span>
-                    <span class="text-xs bg-tertiary/10 border border-tertiary/20 text-tertiary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
-                      <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+                    <span class="text-xs bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
+                      <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                       QVAC-Embeddings
                     </span>
                     <span class="text-xs bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded flex items-center gap-1.5 font-label-mono shadow-sm">
@@ -364,10 +364,10 @@
                 <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-gutter mt-auto">
                   <!-- Metric 1: Models loaded -->
                   <div class="bg-surface-container p-md rounded border border-outline-variant/50 flex flex-col gap-sm hover:border-primary/30 transition-colors">
-                    <span class="font-label-mono text-label-mono text-on-surface-variant">MODELS ACTIVE</span>
+                    <span class="font-label-mono text-label-mono text-on-surface-variant">ENGINES READY</span>
                     <div class="flex items-baseline gap-2">
                       <span class="font-headline-md text-headline-md text-primary" id="dash-models-count">4</span>
-                      <span class="font-body-md text-body-md text-on-surface-variant">Active</span>
+                      <span class="font-body-md text-body-md text-on-surface-variant">Available</span>
                     </div>
                     <div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden mt-2">
                       <div class="h-full bg-primary w-full"></div>
@@ -510,14 +510,14 @@
                   Local field troubleshooting for biomedical equipment. Select a manual, upload an alarm screen if needed, and get equipment-specific service guidance.
                 </p>
                 <div class="welcome-message__chips grid grid-cols-1 sm:grid-cols-2 gap-sm w-full">
-                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="The SpO2 readings on our patient monitor are showing intermittent 'probe off' errors. What should I check?">
+                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="The SpO2 readings on our patient monitor are showing intermittent 'probe off' errors. What should I check?" data-manual-pattern="D3D2">
                     <span class="chip__icon group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">monitor_heart</span></span>
                     <div>
                       <h4 class="font-bold text-on-surface text-xs group-hover:text-primary transition-colors">Nellcor SpO2</h4>
                       <p class="text-[10px] text-on-surface-variant mt-1" data-i18n="chip_spo2">SpO2 probe-off errors</p>
                     </div>
                   </button>
-                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="Our infusion pump shows an occlusion alarm but the line appears clear. How do I troubleshoot?">
+                  <button class="chip group flex items-start gap-md p-md rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary transition-all text-left" data-query="Our infusion pump shows an occlusion alarm but the line appears clear. How do I troubleshoot?" data-manual-pattern="52000">
                     <span class="chip__icon group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">vaccines</span></span>
                     <div>
                       <h4 class="font-bold text-on-surface text-xs group-hover:text-primary transition-colors">Infusion Occlusion</h4>
@@ -892,22 +892,34 @@
       </div>
       <div class="flex flex-col gap-sm">
         <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
-          <span class="font-label-mono text-[9px] text-primary">LLM ENGINE</span>
+          <div class="flex items-center justify-between">
+            <span class="font-label-mono text-[9px] text-primary">LLM ENGINE</span>
+            <span class="text-[9px] text-primary flex items-center gap-1 font-label-mono"><span class="w-1.5 h-1.5 bg-primary rounded-full inline-block shadow-[0_0_6px_rgba(87,241,219,0.6)]"></span> PRELOADED</span>
+          </div>
           <span class="font-body-md text-[14px] text-on-surface font-semibold">MedPsy-4B-Q4_K_M-iMat</span>
           <span class="text-[11px] text-on-surface-variant">Primary diagnostics, reasoning, and technical manual retrieval.</span>
         </div>
         <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
-          <span class="font-label-mono text-[9px] text-secondary">NMT TRANSLATOR</span>
+          <div class="flex items-center justify-between">
+            <span class="font-label-mono text-[9px] text-primary">NMT TRANSLATOR</span>
+            <span class="text-[9px] text-primary flex items-center gap-1 font-label-mono"><span class="w-1.5 h-1.5 bg-primary rounded-full inline-block shadow-[0_0_6px_rgba(87,241,219,0.6)]"></span> ON DEMAND</span>
+          </div>
           <span class="font-body-md text-[14px] text-on-surface font-semibold">Bergamot-NMT</span>
           <span class="text-[11px] text-on-surface-variant">On-device neural translator for real-time translation.</span>
         </div>
         <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
-          <span class="font-label-mono text-[9px] text-tertiary">EMBEDDING MODEL</span>
+          <div class="flex items-center justify-between">
+            <span class="font-label-mono text-[9px] text-primary">EMBEDDING MODEL</span>
+            <span class="text-[9px] text-primary flex items-center gap-1 font-label-mono"><span class="w-1.5 h-1.5 bg-primary rounded-full inline-block shadow-[0_0_6px_rgba(87,241,219,0.6)]"></span> PRELOADED</span>
+          </div>
           <span class="font-body-md text-[14px] text-on-surface font-semibold">QVAC-Embeddings</span>
           <span class="text-[11px] text-on-surface-variant">Semantic vector generation for documentation search.</span>
         </div>
         <div class="flex flex-col gap-xs p-md bg-surface-container-low border border-outline-variant/50 rounded">
-          <span class="font-label-mono text-[9px] text-primary">OCR ENGINE</span>
+          <div class="flex items-center justify-between">
+            <span class="font-label-mono text-[9px] text-primary">OCR ENGINE</span>
+            <span class="text-[9px] text-primary flex items-center gap-1 font-label-mono"><span class="w-1.5 h-1.5 bg-primary rounded-full inline-block shadow-[0_0_6px_rgba(87,241,219,0.6)]"></span> ON DEMAND</span>
+          </div>
           <span class="font-body-md text-[14px] text-on-surface font-semibold">Local-OCR-Engine</span>
           <span class="text-[11px] text-on-surface-variant">On-device screenshot text extractor.</span>
         </div>
