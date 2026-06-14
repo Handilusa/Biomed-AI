@@ -10,6 +10,10 @@ import { StructuredLogger } from '../logging/logger.js';
 import { MetricsCollector } from '../logging/metrics.js';
 import { DEMO_QUERIES } from './queries.js';
 import { Orchestrator } from '../agents/orchestrator.js';
+import { RAG, HyperDBAdapter } from '@qvac/rag';
+import Corestore from 'corestore';
+import path from 'node:path';
+import { embed } from '@qvac/sdk';
 
 async function main() {
   console.log('╔═══════════════════════════════════════════════════╗');
@@ -26,7 +30,33 @@ async function main() {
 
   try {
     await modelManager.loadAll();
-    const retriever = new RAGRetriever(modelManager, config);
+
+    const storePath = path.resolve(config.rag.dataDir, 'hyperdb');
+    const store = new Corestore(storePath);
+    await store.ready();
+
+    const dbAdapter = new HyperDBAdapter({
+      store,
+      dbName: 'biomed-rag-vectors',
+    });
+
+    const embeddingFunction = async (text: string | string[]) => {
+      const embedModelId = modelManager.getModelId('embeddings');
+      const result = await embed({
+        modelId: embedModelId,
+        text,
+      });
+      return result.embedding;
+    };
+
+    const rag = new RAG({
+      embeddingFunction,
+      dbAdapter,
+    });
+
+    await rag.ready();
+
+    const retriever = new RAGRetriever(modelManager, config, rag);
     const orchestrator = new Orchestrator(modelManager, config, retriever);
 
     const logFile = logger.startSession('demo_run');
@@ -42,16 +72,71 @@ async function main() {
       
       let triageCategory = '';
       let finalDisposition = '';
+      let promptTokens = 0;
+      let completionTokens = 0;
+      let ttftMs = 0;
+      let ragChunksUsed = 0;
+      let hasDisclaimers = false;
+      const toolsCalled: string[] = [];
+      let assistantResponse = '';
+      
+      const startTime = performance.now();
+      let firstTokenReceived = false;
       
       for await (const event of gen) {
         if (event.type === 'triage') {
           triageCategory = (event.data as any).category;
           console.log(`   Triage: ${triageCategory} (Expected: ${query.expectedCategory})`);
+        } else if (event.type === 'rag_sources') {
+          const sources = (event.data as any).sources || [];
+          ragChunksUsed = sources.length;
+        } else if (event.type === 'disclaimers') {
+          hasDisclaimers = true;
+        } else if (event.type === 'tool_call') {
+          const toolName = (event.data as any).name;
+          if (toolName) toolsCalled.push(toolName);
+        } else if (event.type === 'content_delta') {
+          if (!firstTokenReceived) {
+            ttftMs = Math.round(performance.now() - startTime);
+            firstTokenReceived = true;
+          }
+          const text = (event.data as any).text || '';
+          assistantResponse += text;
+        } else if (event.type === 'agent_stats') {
+          const agentStats = event.data as any;
+          promptTokens += agentStats.prompt_tokens || 0;
+          completionTokens += agentStats.completion_tokens || 0;
         } else if (event.type === 'done') {
           finalDisposition = (event.data as any).finalDisposition || '';
           console.log(`   Final Disposition: ${finalDisposition}`);
         }
       }
+      
+      const totalTimeMs = Math.round(performance.now() - startTime);
+      const tokensPerSecond = completionTokens > 0 ? parseFloat((completionTokens / (totalTimeMs / 1000)).toFixed(1)) : 0;
+
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        request_id: requestId,
+        agent: 'orchestrator',
+        model: modelManager.getModelFilename('llm'),
+        query: query.query,
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        ttft_ms: ttftMs,
+        tokens_per_second: tokensPerSecond,
+        total_time_ms: totalTimeMs,
+        rag_chunks_used: ragChunksUsed,
+        has_disclaimers: hasDisclaimers,
+        selected_document: query.documentId,
+        triage_category: triageCategory,
+        tools_called: toolsCalled,
+        image_input_present: false,
+        final_disposition: finalDisposition,
+        assistant_response: assistantResponse,
+      };
+      
+      logger.logEntry(logEntry);
       
       console.log('─'.repeat(80));
     }
