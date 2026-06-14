@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Demo Query Battery ───
+// ─── Biomed Field Copilot - Demo Query Battery ───
 // Standard queries for the reproducible demo run.
 
 import type { DemoQuery } from '../types.js';
@@ -9,7 +9,7 @@ export const DEMO_QUERIES: DemoQuery[] = [
     query:
       'The SpO2 readings on our patient monitor are showing intermittent "probe off" errors even though the sensor is properly connected to the patient. What should I check?',
     expectedCategory: 'wiring_connector', // Fixed category
-    description: 'Pulse oximeter troubleshooting — probe off errors',
+    description: 'Pulse oximeter troubleshooting - probe off errors',
     documentId: 'D3D2 Service Manual_2.0_EN.pdf',
   },
   {

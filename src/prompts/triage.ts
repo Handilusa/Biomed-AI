@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Triage Agent Prompt ───
+// ─── Biomed Field Copilot - Triage Agent Prompt ───
 
 export function getTriageSystemPrompt(lang: 'en' | 'es'): string {
   const base = `You are the Triage Agent for a biomedical equipment field-service copilot.
@@ -8,7 +8,7 @@ CATEGORIES (choose exactly one):
 - accessory_consumable → disposable/consumable parts: cuffs, electrode pads, single-use sensors, SpO2 finger clips, breathing circuits, IV tubing.
 - wiring_connector → reusable cables, patient cables, trunk cables, ECG leads, SpO2 probe assemblies, any "probe off" / "lead off" / "sensor disconnect" alarm.
 - power_source → power cords, batteries, chargers, UPS, intermittent shutdowns, won't turn on, power cycling, outlet/mains issues.
-- internal_module → mainboard, internal SpO2 module, pump motor, display module, internal sensors — anything INSIDE the chassis.
+- internal_module → mainboard, internal SpO2 module, pump motor, display module, internal sensors - anything INSIDE the chassis.
 - configuration_use → alarm limits, parameter settings, default resets, mode selection, user error, wrong settings after power cycle.
 - error_code → any specific error code, alarm code, or numeric fault code displayed by the equipment (e.g., E-22, Error 05, Alarm 47).
 - calibration → calibration failures, verification failures, sensor drift, out-of-tolerance readings after preventive maintenance, reference standard mismatches.

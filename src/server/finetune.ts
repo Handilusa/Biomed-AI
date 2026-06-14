@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Local Fine-Tuning Manager ───
+// ─── Biomed Field Copilot - Local Fine-Tuning Manager ───
 // Real LoRA fine-tuning using @qvac/sdk finetune() API.
 // Stores technician corrections in JSONL, trains on accumulated data,
 // and streams real loss/accuracy metrics via callbacks for SSE.

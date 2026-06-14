@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Manual Evidence Agent ───
+// ─── Biomed Field Copilot - Manual Evidence Agent ───
 
 import type { RAGRetriever } from '../rag/retriever.js';
 import type { SearchResult } from '../types.js';

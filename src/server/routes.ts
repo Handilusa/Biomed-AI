@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — API Routes ───
+// ─── Edge MedTech Copilot - API Routes ───
 // REST + SSE endpoints for the web UI.
 
 import { Router, type Request, type Response } from 'express';

@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — RAG Retriever ───
+// ─── Edge MedTech Copilot - RAG Retriever ───
 // Wraps @qvac/rag similarity search.
 
 import { RAG, HyperDBAdapter } from '@qvac/rag';

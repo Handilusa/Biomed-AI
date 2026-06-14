@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Express Server ───
+// ─── Edge MedTech Copilot - Express Server ───
 // Serves the web UI and API endpoints on localhost.
 
 import express from 'express';

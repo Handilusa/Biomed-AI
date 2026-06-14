@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Model Download Helper ───
+// ─── Edge MedTech Copilot - Model Download Helper ───
 // Downloads MedPsy GGUF models from HuggingFace.
 // Usage: npm run download:models
 
@@ -30,7 +30,7 @@ const MODELS: ModelDownload[] = [
 ];
 
 async function main() {
-  console.log('═══ Edge MedTech Copilot — Model Downloader ═══\n');
+  console.log('═══ Edge MedTech Copilot - Model Downloader ═══\n');
 
   const config = loadConfig();
   const modelDir = config.models.dir;
@@ -47,7 +47,7 @@ async function main() {
     const filePath = resolve(modelDir, model.filename);
 
     if (existsSync(filePath)) {
-      console.log(`✅ ${model.name} — already downloaded`);
+      console.log(`✅ ${model.name} - already downloaded`);
       continue;
     }
 
@@ -56,12 +56,12 @@ async function main() {
     console.log(`   Destination: ${filePath}`);
 
     try {
-      // Use curl or wget — they're commonly available
+      // Use curl or wget - they're commonly available
       // Try curl first (available on Windows 10+, macOS, Linux)
       execSync(`curl -L -o "${filePath}" "${model.url}" --progress-bar`, {
         stdio: 'inherit',
       });
-      console.log(`✅ ${model.name} — downloaded successfully\n`);
+      console.log(`✅ ${model.name} - downloaded successfully\n`);
     } catch {
       console.error(`❌ Failed to download ${model.name}.`);
       console.log('   You can download it manually from:');
@@ -72,8 +72,8 @@ async function main() {
 
   console.log('\n═══ Download complete ═══');
   console.log('Next steps:');
-  console.log('  1. npm run dev    — Start the development server');
-  console.log('  2. npm run ingest — Index documents for RAG');
+  console.log('  1. npm run dev    - Start the development server');
+  console.log('  2. npm run ingest - Index documents for RAG');
 }
 
 main().catch((err) => {

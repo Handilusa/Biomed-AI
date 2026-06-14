@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Deterministic Intent Router ───
+// ─── Edge MedTech Copilot - Deterministic Intent Router ───
 // Keyword/regex-based classifier. No model inference.
 // Bilingual EN/ES keyword support.
 
@@ -124,7 +124,7 @@ const OTHER_PATTERNS: RegExp[] = [
 
 /**
  * Classify user intent using deterministic keyword/regex matching.
- * No model inference involved — fast and reliable.
+ * No model inference involved - fast and reliable.
  */
 export function classifyIntent(query: string): ClassificationResult {
   const normalizedQuery = query.toLowerCase().trim();
@@ -150,9 +150,9 @@ export function classifyIntent(query: string): ClassificationResult {
 
   // 3. Determine intent based on scores
   if (techScore === 0 && medScore === 0) {
-    // No keyword matches — check for question patterns
+    // No keyword matches - check for question patterns
     if (/\?/.test(query) || /^(how|what|why|when|where|can|could|should|is|are|do|does|cómo|qué|por qué|cuándo|dónde|puede|debería)/i.test(normalizedQuery)) {
-      // Ambiguous question — default to technical (RAG can help more)
+      // Ambiguous question - default to technical (RAG can help more)
       return {
         intent: 'technical_device_issue',
         confidence: 0.4,
@@ -186,7 +186,7 @@ export function classifyIntent(query: string): ClassificationResult {
     };
   }
 
-  // Tie — prefer technical (RAG context helps more)
+  // Tie - prefer technical (RAG context helps more)
   return {
     intent: 'technical_device_issue',
     confidence: 0.6,

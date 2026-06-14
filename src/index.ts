@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Main Entry Point ───
+// ─── Biomed Field Copilot - Main Entry Point ───
 // Initializes all systems and starts the web server.
 
 import { loadConfig, validateConfig } from './config.js';

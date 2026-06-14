@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — P2P Swarm Orchestrator ───
+// ─── Biomed Field Copilot - P2P Swarm Orchestrator ───
 // Real Hyperswarm-based P2P provider using @qvac/sdk startQVACProvider.
 // Enables federated inference: peers can delegate completions to this node.
 

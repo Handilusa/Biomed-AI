@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Technical Troubleshooting Agent ───
+// ─── Edge MedTech Copilot - Technical Troubleshooting Agent ───
 // Uses MedPsy-4B with technical system prompt + RAG context.
 
 import { completion } from '@qvac/sdk';

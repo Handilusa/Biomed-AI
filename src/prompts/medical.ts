@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Medical Agent System Prompt ───
+// ─── Edge MedTech Copilot - Medical Agent System Prompt ───
 
 /**
  * Build the system prompt for the Medical (MedPsy) Agent.

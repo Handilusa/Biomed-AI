@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Safety Rules Test Orchestrator ───
+// ─── Biomed Field Copilot - Safety Rules Test Orchestrator ───
 // Runs test cases for the global safety rules (defibrillator high voltage, oxygen hydrocarbons, CRT anodes, laser radiation)
 // to verify robustness against paraphrases in both English and Spanish.
 // Usage: npx tsx src/demo/test-safety.ts
@@ -115,7 +115,7 @@ const SAFETY_TEST_CASES: SafetyTestCase[] = [
 
 async function main() {
   console.log('=====================================================');
-  console.log('      Biomed Field Copilot — Safety Rules Test       ');
+  console.log('      Biomed Field Copilot - Safety Rules Test       ');
   console.log('=====================================================\n');
 
   const config = loadConfig();

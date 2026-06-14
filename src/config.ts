@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Centralized Configuration ───
+// ─── Edge MedTech Copilot - Centralized Configuration ───
 // Reads from environment variables with sensible defaults.
 // All config values are validated at startup.
 
@@ -180,15 +180,15 @@ export const PROJECT = {
   license: 'Apache-2.0',
 } as const;
 
-/** Medical disclaimer texts — bilingual */
+/** Medical disclaimer texts - bilingual */
 export const DISCLAIMERS = {
   en: [
-    '⚕️ This tool is for educational and support purposes only — not for clinical diagnosis or treatment.',
+    '⚕️ This tool is for educational and support purposes only - not for clinical diagnosis or treatment.',
     '🏥 Final clinical decisions must be made by qualified healthcare professionals.',
     '⚠️ This tool is not a regulated medical device. Any commercial use requires independent legal/regulatory analysis.',
   ],
   es: [
-    '⚕️ Esta herramienta es solo para fines educativos y de soporte — no para diagnóstico ni tratamiento clínico.',
+    '⚕️ Esta herramienta es solo para fines educativos y de soporte - no para diagnóstico ni tratamiento clínico.',
     '🏥 Las decisiones clínicas finales deben ser tomadas por profesionales sanitarios cualificados.',
     '⚠️ Esta herramienta no es un dispositivo médico regulado. Cualquier uso comercial requiere análisis legal/regulatorio independiente.',
   ],

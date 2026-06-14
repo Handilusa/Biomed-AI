@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Document File Loader ───
+// ─── Edge MedTech Copilot - Document File Loader ───
 // Loads TXT, MD, and PDF files from the data directory.
 
 import { readdir, readFile, stat } from 'node:fs/promises';

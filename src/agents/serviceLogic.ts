@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Service Logic Agent ───
+// ─── Biomed Field Copilot - Service Logic Agent ───
 // Every category flows through the LLM with RAG evidence.
 // Deterministic routing is applied as prompt-level guardrails, not as hardcoded responses.
 

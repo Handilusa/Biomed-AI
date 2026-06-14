@@ -196,8 +196,8 @@ To fulfill the Hackathon requirements for auditable logs:
 npm run demo:log
 ```
 This runs a suite of diagnostic test cases and writes performance data to:
-*   `logs/demo_run_<timestamp>.jsonl` — Structured logs containing prompt tokens, completion tokens, TTFT (Time to First Token), and TPS (Tokens Per Second).
-*   `logs/demo_run_<timestamp>.csv` — CSV export for profiling spreadsheets.
+*   `logs/demo_run_<timestamp>.jsonl` - Structured logs containing prompt tokens, completion tokens, TTFT (Time to First Token), and TPS (Tokens Per Second).
+*   `logs/demo_run_<timestamp>.csv` - CSV export for profiling spreadsheets.
 
 For a description of fields and the verification checklist, see [EVIDENCE.md](EVIDENCE.md).
 

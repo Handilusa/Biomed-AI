@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Performance Metrics Collector ───
+// ─── Edge MedTech Copilot - Performance Metrics Collector ───
 // High-resolution timing for TTFT, TPS, and per-request stats.
 
 import type { CompletionStats } from '../types.js';
@@ -60,7 +60,7 @@ export class MetricsCollector {
     const now = performance.now();
 
     if (!metrics) {
-      // Request not tracked — return best-effort stats
+      // Request not tracked - return best-effort stats
       return {
         ttft_ms: 0,
         tokens_per_second: stats.tokens_per_second,

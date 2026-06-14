@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Express Middleware ───
+// ─── Edge MedTech Copilot - Express Middleware ───
 
 import type { Request, Response, NextFunction } from 'express';
 

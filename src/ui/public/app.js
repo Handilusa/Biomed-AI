@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Client-Side Application ───
+// ─── Edge MedTech Copilot - Client-Side Application ───
 // Handles SSE streaming, message rendering, i18n, and UI state.
 
 (() => {
@@ -19,7 +19,7 @@
       avg_ttft: 'Avg TTFT',
       avg_tps: 'Avg TPS',
       total_tokens: 'Total Tokens',
-      privacy_badge: 'All AI runs locally — zero cloud',
+      privacy_badge: 'All AI runs locally - zero cloud',
       chat_title: 'Biomed Field Copilot',
       chat_desc: 'Technical troubleshooting & field heuristics',
       clear_chat: 'Clear chat',
@@ -75,7 +75,7 @@
       avg_ttft: 'TTFT Medio',
       avg_tps: 'TPS Medio',
       total_tokens: 'Tokens Totales',
-      privacy_badge: 'Toda la IA corre en local — cero nube',
+      privacy_badge: 'Toda la IA corre en local - cero nube',
       chat_title: 'Biomed Field Copilot',
       chat_desc: 'Troubleshooting técnico de campo',
       clear_chat: 'Limpiar chat',
@@ -708,21 +708,21 @@
       for (const sec of sections) {
         const prev = sectionState[sec.key];
         if (sec.isLoading) {
-          // Loading placeholder — render directly, no typewriter
+          // Loading placeholder - render directly, no typewriter
           cardInnerHtml += sec.html;
           // If this section was previously animating, cancel it
           if (prev && prev.animating) {
             prev.animating = false;
           }
         } else if (!prev || prev.text !== sec.text) {
-          // New content or changed content — render container, typewrite the value
+          // New content or changed content - render container, typewrite the value
           cardInnerHtml += sec.html;
           sectionState[sec.key] = { text: sec.text, animating: true, targetHtml: sec.valueHtml, version: renderVersion };
         } else if (prev && prev.animating) {
-          // Same content, still animating — re-render the shell but keep the animation target
+          // Same content, still animating - re-render the shell but keep the animation target
           cardInnerHtml += sec.html;
         } else {
-          // Same content, already done — render directly
+          // Same content, already done - render directly
           cardInnerHtml += sec.html;
         }
       }
@@ -1216,8 +1216,8 @@
     const { queries, ttftSum, tpsSum, totalTokens } = sessionStats;
     const labels = {
       q: queries,
-      ttft: queries > 0 ? Math.round(ttftSum / queries) + 'ms' : '—',
-      tps: queries > 0 ? (tpsSum / queries).toFixed(1) + ' t/s' : '—',
+      ttft: queries > 0 ? Math.round(ttftSum / queries) + 'ms' : '-',
+      tps: queries > 0 ? (tpsSum / queries).toFixed(1) + ' t/s' : '-',
       tok: totalTokens.toLocaleString()
     };
 
@@ -2860,19 +2860,19 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-sm text-center">
             <div class="bg-surface-container/40 p-sm rounded border border-outline-variant/30">
               <div class="text-on-surface-variant text-[9px] uppercase font-label-mono">TTFT</div>
-              <div class="text-primary font-bold text-xs mt-0.5">${entry.ttft_ms ? Math.round(entry.ttft_ms) + 'ms' : '—'}</div>
+              <div class="text-primary font-bold text-xs mt-0.5">${entry.ttft_ms ? Math.round(entry.ttft_ms) + 'ms' : '-'}</div>
             </div>
             <div class="bg-surface-container/40 p-sm rounded border border-outline-variant/30">
               <div class="text-on-surface-variant text-[9px] uppercase font-label-mono">Tokens/Sec</div>
-              <div class="text-on-surface font-bold text-xs mt-0.5">${entry.tokens_per_second ? entry.tokens_per_second : '—'}</div>
+              <div class="text-on-surface font-bold text-xs mt-0.5">${entry.tokens_per_second ? entry.tokens_per_second : '-'}</div>
             </div>
             <div class="bg-surface-container/40 p-sm rounded border border-outline-variant/30">
               <div class="text-on-surface-variant text-[9px] uppercase font-label-mono">Completion Tok</div>
-              <div class="text-on-surface font-bold text-xs mt-0.5">${entry.completion_tokens || '—'}</div>
+              <div class="text-on-surface font-bold text-xs mt-0.5">${entry.completion_tokens || '-'}</div>
             </div>
             <div class="bg-surface-container/40 p-sm rounded border border-outline-variant/30">
               <div class="text-on-surface-variant text-[9px] uppercase font-label-mono">Total Time</div>
-              <div class="text-secondary font-bold text-xs mt-0.5">${entry.total_time_ms ? Math.round(entry.total_time_ms) + 'ms' : '—'}</div>
+              <div class="text-secondary font-bold text-xs mt-0.5">${entry.total_time_ms ? Math.round(entry.total_time_ms) + 'ms' : '-'}</div>
             </div>
           </div>
         </div>

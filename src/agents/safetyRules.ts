@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Global Safety Rules ───
+// ─── Biomed Field Copilot - Global Safety Rules ───
 
 export interface SafetyRule {
   id: string;
@@ -38,7 +38,7 @@ export const SAFETY_RULES: SafetyRule[] = [
       // Direct measurement attempts (dangerous)
       /\b(medir|medici[oó]n|medida|measure|measuring)\b.*\b(corriente|current|amperaje|potencia|power|discharge|descarga|energ[ií]a|energy|voltaje|voltage)\b/i,
       /\b(mult[ií]metro|multimeter|tester|amper[ií]metro|amp\s*meter|volt[ií]metro|voltmeter|osciloscopio|oscilloscope)\b/i,
-      // Power/energy delivery language (conceptual misunderstanding — pads are passive)
+      // Power/energy delivery language (conceptual misunderstanding - pads are passive)
       /\b(suficiente|enough|insuficiente|insufficient|poca|baja|low|falta)\b.*\b(potencia|power|energ[ií]a|energy|descarga|discharge)\b/i,
       /\b(potencia|power|energ[ií]a|energy|descarga|discharge)\b.*\b(suficiente|enough|insuficiente|insufficient|poca|baja|low|falta)\b/i,
       /\b(no\s+(entrega|da|deliver|genera|produce|transmit))\b.*\b(potencia|power|energ[ií]a|energy)\b/i,

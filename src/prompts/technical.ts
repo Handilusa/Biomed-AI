@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Technical Agent System Prompt ───
+// ─── Edge MedTech Copilot - Technical Agent System Prompt ───
 
 /**
  * Build the system prompt for the Technical Agent.

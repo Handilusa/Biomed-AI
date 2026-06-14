@@ -1,6 +1,6 @@
-// ─── Biomed Field Copilot — Compliance Agent ───
+// ─── Biomed Field Copilot - Compliance Agent ───
 // Every category flows through LLM-based compliance validation.
-// No hardcoded fast-paths — disposition is determined by analyzing the actual service output.
+// No hardcoded fast-paths - disposition is determined by analyzing the actual service output.
 
 import { completion } from '@qvac/sdk';
 import type { ModelManager } from '../models/manager.js';
@@ -80,7 +80,7 @@ export class ComplianceAgent {
       } : undefined,
     });
 
-    // Collect full output — compliance agent should only produce a JSON block
+    // Collect full output - compliance agent should only produce a JSON block
     let fullOutput = '';
     for await (const event of run.events) {
       if (event.type === 'contentDelta') {

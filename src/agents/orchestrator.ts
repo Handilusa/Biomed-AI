@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Orchestrator ───
+// ─── Biomed Field Copilot - Orchestrator ───
 
 import type { AppConfig } from '../config.js';
 import type { ModelManager } from '../models/manager.js';

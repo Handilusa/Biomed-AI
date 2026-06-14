@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Model Lifecycle Manager ───
+// ─── Edge MedTech Copilot - Model Lifecycle Manager ───
 // Handles loading, unloading, and tracking QVAC models.
 // Wraps @qvac/sdk loadModel/unloadModel with lifecycle events and logging.
 
@@ -44,7 +44,7 @@ export class ModelManager {
       try {
         if (attempt > 1) {
           const waitSec = attempt * 5;
-          console.log(`🔄 Retry ${attempt}/${MAX_RETRIES} — waiting ${waitSec}s before retrying...`);
+          console.log(`🔄 Retry ${attempt}/${MAX_RETRIES} - waiting ${waitSec}s before retrying...`);
           await new Promise(r => setTimeout(r, waitSec * 1000));
         }
 

@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Demo Run Orchestrator ───
+// ─── Biomed Field Copilot - Demo Run Orchestrator ───
 // Runs the standard demo query battery and generates evidence logs.
 // Usage: npm run demo:log
 
@@ -18,7 +18,7 @@ import { embed } from '@qvac/sdk';
 
 async function main() {
   console.log('╔═══════════════════════════════════════════════════╗');
-  console.log('║      Biomed Field Copilot — Demo Run             ║');
+  console.log('║      Biomed Field Copilot - Demo Run             ║');
   console.log('║      Generating evidence bundle logs              ║');
   console.log('╚═══════════════════════════════════════════════════╝\n');
 

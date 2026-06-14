@@ -16,11 +16,11 @@ This executes a fixed battery of 5 queries and generates structured logs in the 
 
 ### What the Demo Does
 
-1. **Loads models** — MedPsy-4B Q4_K_M + embedding model via QVAC SDK
-2. **Classifies intent** — Deterministic keyword router assigns each query
-3. **Retrieves context** — RAG search for technical queries
-4. **Generates response** — Streaming completion via QVAC SDK
-5. **Logs everything** — JSONL + CSV with all performance metrics
+1. **Loads models** - MedPsy-4B Q4_K_M + embedding model via QVAC SDK
+2. **Classifies intent** - Deterministic keyword router assigns each query
+3. **Retrieves context** - RAG search for technical queries
+4. **Generates response** - Streaming completion via QVAC SDK
+5. **Logs everything** - JSONL + CSV with all performance metrics
 
 ### Demo Queries
 

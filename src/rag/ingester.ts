@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — RAG Ingestion Pipeline ───
+// ─── Edge MedTech Copilot - RAG Ingestion Pipeline ───
 // Chunks documents, embeds them, and stores them in the HyperDB vector database.
 
 import { embed } from '@qvac/sdk';

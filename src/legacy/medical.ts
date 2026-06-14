@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Medical Education Agent ───
+// ─── Edge MedTech Copilot - Medical Education Agent ───
 // Uses MedPsy-4B with medical education system prompt.
 // ALWAYS includes disclaimers.
 

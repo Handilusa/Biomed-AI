@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Triage Agent ───
+// ─── Biomed Field Copilot - Triage Agent ───
 
 import { completion } from '@qvac/sdk';
 import type { ModelManager } from '../models/manager.js';
@@ -141,7 +141,7 @@ export class TriageAgent {
     console.log(`[Triage] 🤖 Raw LLM output (${fullText.length} chars):\n${fullText.substring(0, 500)}`);
 
     try {
-      // Find JSON block — prefer markdown-fenced blocks
+      // Find JSON block - prefer markdown-fenced blocks
       const jsonBlockMatch = fullText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/g);
       let jsonStr = '';
       if (jsonBlockMatch && jsonBlockMatch.length > 0) {

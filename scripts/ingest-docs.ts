@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Document Ingestion CLI Script ───
+// ─── Edge MedTech Copilot - Document Ingestion CLI Script ───
 // Usage: npm run ingest
 
 import { loadConfig, validateConfig } from '../src/config.js';
@@ -7,7 +7,7 @@ import { loadDocuments } from '../src/rag/loader.js';
 import { RAGIngester } from '../src/rag/ingester.js';
 
 async function main() {
-  console.log('═══ Edge MedTech Copilot — Document Ingestion ═══\n');
+  console.log('═══ Edge MedTech Copilot - Document Ingestion ═══\n');
 
   const config = loadConfig();
   const warnings = validateConfig(config);

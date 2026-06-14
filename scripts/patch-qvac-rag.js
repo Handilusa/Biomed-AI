@@ -52,14 +52,14 @@ try {
     fs.writeFileSync(ragPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
     console.log('[patch] Patched @qvac/rag imports: #crypto -> ./src/shims/crypto-node.js');
   } else {
-    console.log('[patch] @qvac/rag already patched or has different imports map — skipping.');
+    console.log('[patch] @qvac/rag already patched or has different imports map - skipping.');
   }
 } catch (err) {
   console.warn('[patch] Could not patch @qvac/rag package.json:', err.message);
   process.exit(0); // non-fatal
 }
 
-console.log('[patch] Done — @qvac/rag crypto shim applied.');
+console.log('[patch] Done - @qvac/rag crypto shim applied.');
 
 // ── 3. Patch RPC init timeout (30s → 120s for large model loading) ──
 const rpcClientPath = path.resolve(__dirname, '..', 'node_modules', '@qvac', 'sdk', 'dist', 'client', 'rpc', 'node-rpc-client.js');
@@ -74,7 +74,7 @@ try {
       fs.writeFileSync(rpcClientPath, rpcSrc, 'utf8');
       console.log('[patch] Increased RPC_INIT_TIMEOUT_MS: 30s -> 120s');
     } else {
-      console.log('[patch] RPC timeout already patched — skipping.');
+      console.log('[patch] RPC timeout already patched - skipping.');
     }
   }
 } catch (err) {

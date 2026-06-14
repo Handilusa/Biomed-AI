@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — OCR Engine with Real Bounding Boxes ───
+// ─── Biomed Field Copilot - OCR Engine with Real Bounding Boxes ───
 // Uses @qvac/sdk ocr() for native on-device text extraction with
 // real bbox coordinates, confidence scores, and detection statistics.
 
@@ -82,7 +82,7 @@ export class OCRManager {
 
     const totalTime = performance.now() - startTime;
 
-    // Normalize the result — SDK returns blocks with text, bbox?, confidence?
+    // Normalize the result - SDK returns blocks with text, bbox?, confidence?
     const blocks: OCRBlock[] = [];
     let fullText = '';
 

@@ -1,4 +1,4 @@
-// ─── Edge MedTech Copilot — Structured Logger ───
+// ─── Edge MedTech Copilot - Structured Logger ───
 // JSON Lines (.jsonl) logger for the evidence bundle.
 
 import { mkdirSync, appendFileSync, readFileSync, writeFileSync, existsSync } from 'node:fs';

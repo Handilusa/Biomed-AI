@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Shared Type Definitions ───
+// ─── Biomed Field Copilot - Shared Type Definitions ───
 // All core interfaces used across the multi-agent system, RAG pipeline, logging, and API.
 
 // ────────────────────────────────────────────
@@ -31,7 +31,7 @@ export type AgentRole = 'triage' | 'manual_evidence' | 'service_logic' | 'compli
 
 export type FinalDisposition = 'replace_accessory' | 'swap_test' | 'escalate' | 'clinical_referral' | 'recalibrate' | 'follow_error_tree';
 
-/** Structured output from the Service Logic Agent — always LLM-generated. */
+/** Structured output from the Service Logic Agent - always LLM-generated. */
 export interface ServiceLogicOutput {
   /** Direct, actionable troubleshooting steps for the technician */
   instructions: string;

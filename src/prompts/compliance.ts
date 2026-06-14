@@ -1,4 +1,4 @@
-// ─── Biomed Field Copilot — Compliance Agent Prompt ───
+// ─── Biomed Field Copilot - Compliance Agent Prompt ───
 
 export function getComplianceSystemPrompt(lang: 'en' | 'es'): string {
   return `You are a strict compliance and safety validation system for biomedical equipment field service.
