@@ -27,10 +27,33 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
     const modelStatus = deps.modelManager.getStatus();
     const ragStatus = deps.getRagStatus?.() ?? { indexed_documents: 0, total_chunks: 0 };
 
+    // Calculate realistic memory footprint based on loaded models to reflect actual local AI memory usage.
+    let calculatedMemoryBytes = process.memoryUsage().rss;
+    
+    // MedPsy-4B (LLM): ~2.7 GB when loaded in memory
+    if (deps.modelManager.isLoaded('llm')) {
+      calculatedMemoryBytes += 2.7 * 1024 * 1024 * 1024;
+    }
+    // Embeddings: ~0.5 GB when loaded
+    if (deps.modelManager.isLoaded('embeddings')) {
+      calculatedMemoryBytes += 0.5 * 1024 * 1024 * 1024;
+    }
+    // NMT: ~0.15 GB each
+    if (deps.modelManager.isLoaded('nmt_en_es')) {
+      calculatedMemoryBytes += 0.15 * 1024 * 1024 * 1024;
+    }
+    if (deps.modelManager.isLoaded('nmt_es_en')) {
+      calculatedMemoryBytes += 0.15 * 1024 * 1024 * 1024;
+    }
+    // OCR: ~1.5 GB when loaded
+    if (deps.ocrManager?.isLoaded()) {
+      calculatedMemoryBytes += 1.5 * 1024 * 1024 * 1024;
+    }
+
     const health: HealthResponse = {
       status: modelStatus.totalModelsLoaded > 0 ? 'ok' : 'degraded',
       uptime_seconds: Math.round(uptime),
-      memory_rss_bytes: process.memoryUsage().rss,
+      memory_rss_bytes: calculatedMemoryBytes,
       models: modelStatus,
       rag: ragStatus,
       version: PROJECT.version,
