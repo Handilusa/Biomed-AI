@@ -109,8 +109,8 @@ For hackathon judges to verify coherence between code, logs, video, and hardware
 
 ```bash
 # Full reproduction from scratch
-git clone <repo>
-cd edge-medtech-copilot
+git clone https://github.com/Handilusa/Biomed-AI.git
+cd Biomed-AI
 npm install
 npm run download:models
 npm run ingest
