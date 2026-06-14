@@ -41,6 +41,8 @@ BioMed AI complies strictly with all rules of the **QVAC Hackathon: Unleash Edge
 
 All inference, embeddings, vector databases, and model training tasks are executed **100% locally on-device by the QVAC SDK and QVAC RAG**. There are zero mocks and zero cloud dependencies.
 
+For detailed Mermaid workflow diagrams (Request Lifecycle, P2P Swarm Delegation, and LoRA Fine-Tuning), see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                            BioMed Web Interface                             │
