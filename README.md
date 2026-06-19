@@ -12,6 +12,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache-2.0" /></a>
   <a href="https://docs.qvac.tether.io"><img src="https://img.shields.io/badge/QVAC-SDK-teal" alt="QVAC SDK" /></a>
   <a href="https://dorahacks.io/hackathon/qvac-unleach-edge-ai-i"><img src="https://img.shields.io/badge/QVAC%20Hackathon-2026-orange" alt="QVAC Hackathon 2026" /></a>
+  <a href="https://youtu.be/9ChBOnDub_I?si=pKfTxL4WH1yn36T9"><img src="https://img.shields.io/badge/Demo-YouTube-red?logo=youtube" alt="YouTube Demo" /></a>
+  <a href="https://x.com/Cebohia18"><img src="https://img.shields.io/badge/Follow-@Cebohia18-000?logo=x" alt="Twitter/X" /></a>
 </p>
 
 <p align="center">
@@ -28,12 +30,10 @@
 
 ---
 
-## 🌟 Hackathon Tracks & Alignment
+## 🌟 Hackathon Track
 
-BioMed AI complies strictly with all rules of the **QVAC Hackathon: Unleash Edge AI**. It is submitted under the following tracks:
-*   **🧠 MedPsy Track**: Heavily utilizes the **MedPsy-4B** specialized model for technical-clinical triage and medical-grade troubleshooting diagnostics.
-*   **💻 General Purpose Track**: Highly optimized to run on local retail devices and technician laptops (up to 32 GB RAM).
-*   **🔧 Tinkerer Track**: Featuring a lightweight, quantized on-device footprint (~4.6 GB RAM total) that allows it to execute cleanly on single-board computers (SBCs) and low-power units.
+BioMed AI complies strictly with all rules of the **QVAC Hackathon: Unleash Edge AI**. It is submitted under:
+*   **🧠 Psy Models Track**: Built exclusively around the **MedPsy-4B** specialized model for technical-clinical triage and medical-grade troubleshooting diagnostics in biomedical equipment workshops. All inference, RAG, OCR, and fine-tuning run 100% locally via the QVAC SDK — zero cloud AI dependencies.
 
 ---
 
@@ -131,7 +131,17 @@ The project's performance logs and video demo were recorded on the following har
 *   **Git**: For cloning the repository
 
 ### 1. Disclosed Remote API Calls
-Per Hackathon rules, all external API calls are documented in [remote_apis.json](remote_apis.json). There are **zero cloud AI dependencies**. The app functions entirely offline once models are downloaded.
+
+Per Hackathon rules (*"Cloud APIs are not allowed except for clearly disclosed optional non-AI services"*), all external network usage is fully documented in [remote_apis.json](remote_apis.json).
+
+| Service | Purpose | Required? | Used for AI? |
+|---------|---------|:---------:|:------------:|
+| **HuggingFace** | One-time download of GGUF model weights | No | ❌ |
+| **GitHub** | Source code hosting and distribution | No | ❌ |
+| **Google Fonts** | Typography (Inter font); falls back to system fonts offline | No | ❌ |
+
+> [!IMPORTANT]
+> **Zero cloud AI dependencies.** All inference, embeddings, RAG, OCR, and fine-tuning run 100% locally via the QVAC SDK. The three services above are optional, non-AI utilities that are explicitly permitted by hackathon rules. They are disclosed here — rather than leaving an empty list — to demonstrate full transparency and allow static audit of the repository.
 
 ### 2. Environment Setup
 Clone the repository, create a `.env` file from the example, and configure variables:
@@ -210,6 +220,19 @@ This runs a suite of diagnostic test cases and writes performance data to:
 *   `logs/demo_run_<timestamp>.csv` - CSV export for profiling spreadsheets.
 
 For a description of fields and the verification checklist, see [EVIDENCE.md](EVIDENCE.md).
+
+---
+
+## 🎬 Demo Video
+
+[![BioMed AI Demo](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/9ChBOnDub_I?si=pKfTxL4WH1yn36T9)
+
+---
+
+## 👤 Author & Contact
+
+*   **Twitter/X**: [@Cebohia18](https://x.com/Cebohia18)
+*   **Hackathon**: [QVAC: Unleash Edge AI 2026](https://dorahacks.io/hackathon/qvac-unleach-edge-ai-i)
 
 ---
 
