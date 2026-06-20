@@ -7,6 +7,6 @@
   ],
   "settings": {
     "modelDir": "./models",
-    "hardwareAcceleration": "vulkan"
+    "hardwareAcceleration": "cpu"
   }
 }

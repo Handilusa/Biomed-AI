@@ -26,7 +26,7 @@ export class RAGIngester {
       const store = new Corestore(path.resolve(config.rag.dataDir, 'hyperdb'));
       const dbAdapter = new HyperDBAdapter({
         store,
-        dbName: 'biomed-rag-vectors',
+        dbName: 'biomed-rag-vectors-v2',
       });
       const embeddingFunction = async (text: string | string[]) => {
         const embedModelId = modelManager.getModelId('embeddings');
@@ -60,6 +60,36 @@ export class RAGIngester {
 
     for (const doc of documents) {
       try {
+        // Extract section headers and their character indices to track section boundaries
+        const sections: { index: number; header: string }[] = [];
+        const headerRegex = /^\s*(\d{1,2}(?:\.\d{1,2}){0,2})\.?\s+([A-Z][A-Za-z0-9\s,\-\/()]{2,75})\s*$/;
+        
+        let pos = 0;
+        while (pos < doc.content.length) {
+          let nextNewline = doc.content.indexOf('\n', pos);
+          if (nextNewline === -1) {
+            nextNewline = doc.content.length;
+          }
+          const line = doc.content.substring(pos, nextNewline);
+          const trimmed = line.trim();
+          if (headerRegex.test(trimmed)) {
+            sections.push({ index: pos, header: trimmed });
+          }
+          pos = nextNewline + 1;
+        }
+
+        const getSectionForIndex = (index: number): string => {
+          let activeSection = 'General';
+          for (const sec of sections) {
+            if (index >= sec.index) {
+              activeSection = sec.header;
+            } else {
+              break;
+            }
+          }
+          return activeSection;
+        };
+
         // 1. Chunk the document manually to guarantee it never exceeds context window
         const chunkSizeChars = 800; // Safe below 1024 tokens limit
         const overlapChars = 100;
@@ -68,7 +98,9 @@ export class RAGIngester {
         while (i < doc.content.length) {
           const slice = doc.content.substring(i, i + chunkSizeChars).trim();
           if (slice.length > 0) {
-            chunks.push({ content: slice });
+            const section = getSectionForIndex(i);
+            const prefixedContent = `[Manual: ${doc.filename}] [Section: ${section}]\n${slice}`;
+            chunks.push({ content: prefixedContent });
           }
           i += (chunkSizeChars - overlapChars);
         }

@@ -630,4 +630,62 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 
+/* ─── Premium Evidence Accordion ─── */
+.evidence-details {
+  margin-top: 0.35rem;
+  background: rgba(30, 41, 59, 0.25);
+  border: 1px solid rgba(87, 241, 219, 0.15);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.evidence-summary {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #bacac5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  outline: none;
+  transition: background 0.2s, color 0.2s;
+  background: rgba(21, 32, 49, 0.4);
+}
+
+.evidence-summary:hover {
+  background: rgba(21, 32, 49, 0.8);
+  color: #57f1db;
+}
+
+.evidence-summary::-webkit-details-marker {
+  display: none;
+}
+
+.evidence-content {
+  padding: 0.75rem;
+  border-top: 1px solid rgba(60, 74, 70, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(4, 14, 31, 0.1);
+}
+
+.source-excerpt-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Rotates chevron when details is open */
+.source-excerpt-details[open] .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.evidence-details[open] .evidence-chevron {
+  transform: rotate(180deg);
+}
+
+
 

@@ -96,6 +96,7 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
       responseLanguage: body.responseLanguage || 'auto',
       evidenceMode: body.evidenceMode || 'original',
       peerPublicKey: body.peerPublicKey,
+      history: body.history,
     };
 
     const requestId = randomUUID();

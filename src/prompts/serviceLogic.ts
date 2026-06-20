@@ -40,7 +40,9 @@ You MUST follow this sequence and reference the manual for each step:
 
 3. EXPIRY/USAGE CHECK: If applicable (disposable sensors, electrode pads, cuffs), instruct the technician to check expiry dates and usage cycle limits per manufacturer specifications.
 
-4. DIRECT REPLACEMENT: Instruct the technician to replace the accessory directly. Do NOT perform a swap-test - this is a consumable/disposable item.
+3b. ERROR CODE CROSS-REFERENCE: If the manual excerpts contain error code tables or fault codes, cross-reference the reported symptoms with any matching error codes and include them in the instructions. This helps the technician validate the root cause.
+
+4. DIRECT REPLACEMENT: Instruct the technician to proceed with direct replacement of the consumable. A swap-test is not applicable for disposable items — proceed straight to installation and then verification.
 
 5. POST-REPLACEMENT VERIFICATION: Describe how to verify the new accessory is functioning correctly (e.g., self-test, initial reading validation).
 
@@ -120,7 +122,7 @@ DISPOSITION RULES:
 DIAGNOSTIC PROTOCOL - Error/Alarm Code Lookup:
 You MUST follow this sequence and reference the manual for each step:
 
-1. CODE IDENTIFICATION: Identify the exact error code from the user's report. Look up this code in the manual's error code table, alarm code appendix, or troubleshooting section.
+1. CODE IDENTIFICATION: Identify the exact error code from the user's report. Look up this code in the manual's error code table, alarm code appendix, or troubleshooting section. If no specific error code is provided in the query or found in the manual excerpts, do NOT hallucinate or assume a code. Instead, instruct the technician on how to access the device's event logs or self-test menus to retrieve the actual code, and provide general troubleshooting/diagnostic guidance for the reported symptoms.
 
 2. SUBSYSTEM MAPPING: Map the error code to the affected subsystem (e.g., SpO2 module, power supply, communication bus, mechanical subsystem).
 
@@ -137,6 +139,21 @@ DISPOSITION RULES:
 - Default disposition: "follow_error_tree"
 - If the error code maps to a specific replaceable component, disposition may be "replace_accessory" or "swap_test".
 - If the error requires factory service, disposition is "escalate".`,
+
+  general_inquiry: `
+DIAGNOSTIC PROTOCOL - General Troubleshooting Inquiry:
+Follow this sequence to address general or investigative technical queries:
+
+1. IDENTIFY SUBJECT: Clarify the subject of the technician's inquiry (e.g., how to configure a parameter, check maintenance schedule, or run a diagnostic test).
+
+2. REFERENCE RELEVANT SECTIONS: Cite the manual's maintenance, configuration, or operational chapters. 
+
+3. SERVICE ACTIONS: Provide clear, sequential steps for executing the technician's requested check or task based on the manual.
+
+4. COMPLIANCE & SAFETY: Remind the technician of any safety or compliance steps required for this procedure.
+
+DISPOSITION RULES:
+- Default disposition: "follow_error_tree"`,
 
   calibration: `
 DIAGNOSTIC PROTOCOL - Calibration/Verification Issue:
@@ -169,7 +186,8 @@ export function getServiceLogicSystemPrompt(
   category: TriageCategory,
   ragContext: string,
   lang: 'en' | 'es',
-  userQuery: string
+  userQuery: string,
+  isDeficient: boolean = false
 ): string {
   const langRules = lang === 'es'
     ? `IDIOMA: ¡DEBES RESPONDER COMPLETAMENTE EN ESPAÑOL! Todos los campos ("instructions", "reasoning_summary", "evidence_used") en el objeto JSON final deben estar escritos en español. Si los documentos del manual están en inglés, traduce toda la terminología técnica y los pasos al español. NO respondas en inglés bajo ninguna circunstancia.`
@@ -177,8 +195,18 @@ export function getServiceLogicSystemPrompt(
 
   const protocol = CATEGORY_PROTOCOLS[category] || CATEGORY_PROTOCOLS['internal_module'];
 
-  return `You are a senior biomedical equipment field-service expert writing instructions that will appear in a clinical interface used by hospital biomedical technicians. Your output must read like polished technical documentation - not like AI-generated text.
+  const deficientOverride = isDeficient ? `
+DEFICIENT EVIDENCE OVERRIDE (MANDATORY):
+The system has programmatically determined that the manual excerpts below do NOT contain troubleshooting content relevant to the reported fault. You MUST:
+1. START your "instructions" field with: "${lang === 'es' ? '⚠️ Advertencia: Los fragmentos del manual proporcionados no contienen procedimientos de diagnóstico específicos para esta falla. Verifique la selección del manual.' : '⚠️ Warning: The provided manual excerpts lack specific troubleshooting procedures for this fault. Verify manual selection.'}"
+2. Do NOT reference, cite, or use ANY section numbers, connector IDs (e.g. J1, J6), pinouts, board names, or internal component identifiers from the manual excerpts — they are NOT relevant to this fault.
+3. Provide ONLY general field-service best-practice steps (visual inspection, swap-test, escalation) WITHOUT tying them to specific manual content.
+4. Set "confidence" to 0.3 or lower.
+5. Set "evidence_used" to an empty array [].
+` : '';
 
+  return `You are a senior biomedical equipment field-service expert writing instructions that will appear in a clinical interface used by hospital biomedical technicians. Your output must read like a real, experienced human field engineer giving practical service guidance - not like a robotic template or AI-generated list.
+${deficientOverride}
 ${protocol}
 
 TECHNICIAN'S FAULT REPORT:
@@ -190,9 +218,11 @@ CRITICAL OUTPUT RULES:
 3. Reference specific manual sections, page numbers, or procedures from the MANUAL DOCUMENTS below.
 4. If the manual evidence is insufficient, state what additional information is needed.
 5. The "reasoning_summary" MUST be exactly one brief, clear, and direct sentence (under 15 words) explaining the primary technical rationale (e.g. "Intermittent probe-off usually points to cable or connector faults."). Do NOT write multiple sentences, a paragraph, or a trace.
-6. The "evidence_used" array MUST only cite references that are EXPLICITLY present in the MANUAL DOCUMENTS below. Use the exact section title or heading text you find. If no specific section or page is identifiable, use a short factual description of what the manual covers (e.g. "Cable inspection guidance from the manual"). NEVER invent page numbers, figure numbers, or section numbers.
-  7. TONE & FORMAT: Write "instructions" in clean, direct clinical language. Avoid robotic phrasing ("Mandatorily perform", "You MUST execute"). Use natural imperative voice ("Inspect the cable", "Swap with a known good spare"). Format the "instructions" as a single multi-line string where each step starts on a new line and is prefixed with a sequential number (e.g., "1. Inspect...", "2. Swap..."). Do NOT output steps on a single line, and do NOT separate steps with commas or semicolons. Each numbered step must be a complete, self-contained instruction.
-  8. ${langRules}
+6. The "evidence_used" array MUST only cite references that are EXPLICITLY present in the MANUAL DOCUMENTS below. Use the exact section title or heading text you find. If no specific section or page is identifiable, use a short factual description of what the manual covers (e.g. "Cable inspection guidance from the manual"). NEVER invent page numbers, figure numbers, or section numbers (e.g., do not refer to "Section 3.1" or "page 42" unless they appear exactly in the manual headers/metadata). Require the exact section headers provided in the RAG context.
+7. ANTI-HALLUCINATION FOR VALUES: You MUST NOT invent specific numeric values (ohm ranges, time limits, temperatures, pressures, voltages, dosages, thresholds) or specific step instructions/troubleshooting tables unless those exact values/steps appear verbatim in the MANUAL DOCUMENTS below. If a step requires a specific value or procedure but it is not found in the provided manual excerpts, write "per manufacturer specifications" or "as specified in the equipment manual" instead of fabricating a number or steps. This is critical for patient safety.
+8. TONE & FORMAT: Write "instructions" in a natural, practical, and highly human imperative voice. Avoid overly sterile, textbook, or robotic phrasing (e.g., instead of "1. Inspect tubing for kinks", write "1. Trace the IV tubing to check for any closed roller clamps or kinks under the patient bed"). Format the "instructions" as a single multi-line string where each step starts on a new line and is prefixed with a sequential number (e.g., "1. Inspect...", "2. Swap..."). Do NOT output steps on a single line.
+9. MANUAL MISMATCH DETECTOR: You must check if the provided MANUAL DOCUMENTS actually match the type of equipment or fault reported. If there is a clear mismatch (e.g., trying to troubleshoot an infusion pump using a ventilator or oxygen system manual), you MUST start your "instructions" string with a prominent warning calling out the mismatch (e.g., "⚠️ Warning: The selected manual does not match the reported device. Verify manual selection. General guidance:"). Do not hallucinate or try to force-fit the mismatching manual's contents to the reported device.
+10. ${langRules}
 
 JSON SCHEMA:
 \`\`\`json
@@ -207,3 +237,4 @@ JSON SCHEMA:
 MANUAL DOCUMENTS:
 ${ragContext || 'No manual documents available. Provide general best-practice guidance and note that manual verification is required.'}`;
 }
+

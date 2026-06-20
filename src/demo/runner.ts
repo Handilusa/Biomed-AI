@@ -56,7 +56,7 @@ async function main() {
 
     const dbAdapter = new HyperDBAdapter({
       store,
-      dbName: 'biomed-rag-vectors',
+      dbName: 'biomed-rag-vectors-v2',
     });
 
     const embeddingFunction = async (text: string | string[]) => {

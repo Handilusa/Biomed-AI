@@ -36,6 +36,142 @@ export class Orchestrator {
     return esCount > enCount ? 'es' : 'en';
   }
 
+  private cleanSearchQuery(query: string): string {
+    let cleaned = query.replace(/manuals[\/\\][^\s]+/gi, '');
+    cleaned = cleaned.replace(/\b[\w\-\.]+\.(pdf|md|txt)\b/gi, '');
+    cleaned = cleaned.replace(/\.{2,}/g, '');
+    return cleaned.trim();
+  }
+
+  private checkEvidenceSufficiency(query: string, signals: string[], evidence: any[]): boolean {
+    if (evidence.length === 0) return false;
+
+    // Check if the top result has very low relevance
+    const topScore = evidence[0].similarity;
+    if (topScore < 0.25) return false;
+
+    const combinedText = evidence.map((e) => (e.text || '').toLowerCase()).join(' ');
+
+    const keywords = new Set<string>();
+    for (const sig of signals) {
+      const parts = sig.toLowerCase().split(/\s+/);
+      for (const part of parts) {
+        if (part.length > 2) keywords.add(part);
+      }
+    }
+
+    const queryWords = query.toLowerCase().split(/\W+/);
+    // Remove troubleshoot, intermittent, error, reading from the stopWords
+    const stopWords = new Set([
+      'the', 'of', 'and', 'to', 'a', 'in', 'is', 'that', 'it', 'for', 'on', 'are', 'as', 'with', 'at', 'be', 'this', 'have',
+      'from', 'or', 'by', 'but', 'not', 'what', 'how', 'why', 'who', 'where', 'when', 'i', 'we', 'you', 'he', 'she', 'they',
+      'manuals', 'manual', 'pdf', 'document', 'device', 'equipment', 'monitors', 'monitor', 'patient', 'hospital', 'copilot'
+    ]);
+
+    for (const word of queryWords) {
+      if (word.length > 2 && !stopWords.has(word) && !/^\d+$/.test(word)) {
+        keywords.add(word);
+      }
+    }
+
+    const errorCodeMatch = query.match(/e-?\d+/i);
+    if (errorCodeMatch) {
+      keywords.add(errorCodeMatch[0].toLowerCase());
+      keywords.add(errorCodeMatch[0].replace('-', '').toLowerCase());
+    }
+
+    if (keywords.size === 0) return true;
+
+    let matchCount = 0;
+    for (const kw of keywords) {
+      if (combinedText.includes(kw)) {
+        matchCount++;
+      }
+    }
+
+    const spanishTranslations: Record<string, string[]> = {
+      'probe': ['sonda', 'sensor', 'electrodo', 'cable'],
+      'sensor': ['sonda', 'electrodo', 'cable'],
+      'cable': ['cable', 'latiguillo', 'hilo', 'conductor'],
+      'occlusion': ['oclusión', 'obstrucción', 'bloqueo'],
+      'power': ['corriente', 'alimentación', 'encendido', 'batería', 'bateria'],
+      'battery': ['batería', 'bateria', 'pila'],
+      'calibration': ['calibración', 'ajuste', 'PM'],
+      'impedance': ['impedancia', 'resistencia'],
+      'intermittent': ['intermitente', 'inestable', 'contacto'],
+      'readings': ['lecturas', 'medición', 'mediciones'],
+      'reading': ['lectura', 'medición', 'medicion'],
+      'error': ['error', 'código', 'codigo', 'alarma', 'fallo'],
+      'errors': ['errores', 'códigos', 'codigos', 'alarmas', 'fallos']
+    };
+
+    for (const kw of keywords) {
+      if (spanishTranslations[kw]) {
+        for (const syn of spanishTranslations[kw]) {
+          if (combinedText.includes(syn)) {
+            matchCount++;
+          }
+        }
+      }
+    }
+
+    // Enforce matching specific symptom/fault keywords if they are present in the query.
+    const specificSymptomKeywords = [
+      'intermittent', 'impedance', 'shock', 'shocks', 'calibration', 'calibrate',
+      'occlusion', 'occlusions', 'leakage', 'noise', 'drift', 'off', 'leak',
+      'leaks', 'short', 'shorts', 'open', 'opens', 'ground', 'grounds'
+    ];
+
+    const specificSymptomSynonyms: Record<string, string[]> = {
+      'intermittent': ['intermitente', 'inestable', 'fluctuante', 'contacto'],
+      'impedance': ['impedancia', 'resistencia', 'contacto', 'ohm', 'ohms'],
+      'shock': ['choque', 'descarga', 'energía', 'energia', 'julio', 'julios', 'discharge', 'discharges'],
+      'shocks': ['choque', 'descarga', 'energía', 'energia', 'julio', 'julios', 'discharge', 'discharges'],
+      'calibration': ['calibración', 'ajuste', 'pm', 'calibrar'],
+      'calibrate': ['calibración', 'ajuste', 'pm', 'calibrar'],
+      'occlusion': ['oclusión', 'obstrucción', 'bloqueo', 'block', 'blocked', 'blockage', 'clog', 'clogged'],
+      'occlusions': ['oclusión', 'obstrucción', 'bloqueo', 'block', 'blocked', 'blockage', 'clog', 'clogged'],
+      'leakage': ['fuga', 'fugas', 'earth', 'ground', 'leak', 'leaks'],
+      'noise': ['ruido', 'ruidoso', 'interferencia', 'artifact', 'artifacts'],
+      'drift': ['desviación', 'desviacion', 'inestable', 'drift', 'drifting'],
+      'off': ['desconectado', 'desconexion', 'suelto', 'abierto', 'disconnected', 'unplugged', 'loose', 'open'],
+      'leak': ['fuga', 'fugas', 'earth', 'ground', 'leak', 'leaks'],
+      'leaks': ['fuga', 'fugas', 'earth', 'ground', 'leak', 'leaks'],
+      'short': ['corto', 'cortocircuito', 'shorted'],
+      'shorts': ['corto', 'cortocircuito', 'shorted'],
+      'open': ['abierto', 'open-circuit'],
+      'opens': ['abierto', 'open-circuit'],
+      'ground': ['tierra', 'grounding', 'chassis'],
+      'grounds': ['tierra', 'grounding', 'chassis']
+    };
+
+    const querySymptoms = queryWords.filter(w => specificSymptomKeywords.includes(w));
+    if (querySymptoms.length > 0) {
+      let symptomMatched = false;
+      for (const sym of querySymptoms) {
+        if (combinedText.includes(sym)) {
+          symptomMatched = true;
+          break;
+        }
+        if (specificSymptomSynonyms[sym]) {
+          for (const syn of specificSymptomSynonyms[sym]) {
+            if (combinedText.includes(syn)) {
+              symptomMatched = true;
+              break;
+            }
+          }
+        }
+        if (symptomMatched) break;
+      }
+      if (!symptomMatched) {
+        console.log(`[Orchestrator] ⚠️ Query contains specific symptoms (${querySymptoms.join(', ')}) but none matched the retrieved text. Marking as deficient.`);
+        return false;
+      }
+    }
+
+    return matchCount > 0;
+  }
+
   async *processQuery(
     query: string,
     options: {
@@ -43,6 +179,7 @@ export class Orchestrator {
       responseLanguage?: 'auto' | 'en' | 'es';
       evidenceMode?: 'original' | 'translated' | 'both';
       peerPublicKey?: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
     },
     documentId?: string,
     imageBase64?: string
@@ -54,7 +191,7 @@ export class Orchestrator {
       : options.responseLanguage;
 
     // 1. Triage Phase
-    const triageInfo = await this.triageAgent.run(query, targetLang, imageBase64, options.peerPublicKey);
+    const triageInfo = await this.triageAgent.run(query, targetLang, imageBase64, options.peerPublicKey, options.history);
     const triageResult = triageInfo.result;
     yield { type: 'triage', data: triageResult };
 
@@ -81,12 +218,15 @@ export class Orchestrator {
     }
 
     // 2. Manual Evidence Phase
-    // Provide both the original query and the extracted signals for a richer semantic search
+    // Clean the user query to remove file path noise and improve RAG embedding search quality
+    const cleanedQuery = this.cleanSearchQuery(query);
     const searchQuery = triageResult.extractedSignals && triageResult.extractedSignals.length > 0 
-      ? `${query} ${triageResult.extractedSignals.join(' ')}` 
-      : query;
+      ? `${cleanedQuery} ${triageResult.extractedSignals.join(' ')}` 
+      : cleanedQuery;
     const evidence = await this.evidenceAgent.run(searchQuery, documentId);
     
+    const isDeficient = !this.checkEvidenceSufficiency(query, triageResult.extractedSignals || [], evidence);
+
     // NMT Translation for Evidence if requested
     const docLang = 'en'; // MVP assumption: manuals are indexed in English
     const evidenceMode = options.evidenceMode || 'original';
@@ -101,7 +241,7 @@ export class Orchestrator {
     yield { type: 'rag_sources', data: { sources: evidence } };
 
     // 3. Service Logic Phase
-    const serviceGen = this.serviceAgent.streamRun(triageResult.category, evidence, targetLang, query, options.peerPublicKey);
+    const serviceGen = this.serviceAgent.streamRun(triageResult.category, evidence, targetLang, query, options.peerPublicKey, options.history, isDeficient);
     let serviceContent = '';
     
     for await (const event of serviceGen) {

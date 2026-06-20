@@ -23,7 +23,7 @@ export class RAGRetriever {
       const store = new Corestore(path.resolve(config.rag.dataDir, 'hyperdb'));
       const dbAdapter = new HyperDBAdapter({
         store,
-        dbName: 'biomed-rag-vectors',
+        dbName: 'biomed-rag-vectors-v2',
       });
       const embeddingFunction = async (text: string | string[]) => {
         const embedModelId = modelManager.getModelId('embeddings');
@@ -68,8 +68,17 @@ export class RAGRetriever {
       
       // Filter by document ID if provided (must be deterministic match)
       if (documentId) {
-        filteredResults = filteredResults.filter((r) => r.id && r.id.startsWith(`${documentId}::`));
+        const targetDoc = documentId.replace(/\\/g, '/');
+        filteredResults = filteredResults.filter((r) => {
+          if (!r.id) return false;
+          const normalizedId = r.id.replace(/\\/g, '/');
+          const docPart = normalizedId.split('::')[0];
+          return docPart === targetDoc || docPart.endsWith('/' + targetDoc);
+        });
       }
+
+      // Deduplicate near-identical chunks caused by overlapping ingestion windows
+      filteredResults = this.deduplicateResults(filteredResults);
 
       return filteredResults
         .slice(0, finalK)
@@ -79,7 +88,7 @@ export class RAGRetriever {
             ? result.id.replace(/::chunk-\d+$/, '')
             : 'unknown';
           return {
-            text: (result.content ?? '').substring(0, 600), // limit chunk length to save context tokens
+            text: result.content ?? '',
             document: docName,
             similarity: result.score ?? 0,
           };
@@ -104,5 +113,38 @@ export class RAGRetriever {
         return `--- [Source ${i + 1}: ${r.document}] (Relevance: ${similarity}%) ---\n${r.text}\n`;
       })
       .join('\n');
+  }
+
+  /**
+   * Remove near-duplicate chunks caused by overlapping ingestion windows.
+   * Uses Jaccard similarity on word sets — O(n²) but n is small (topK ≤ 50).
+   */
+  private deduplicateResults(
+    results: { id?: string; content?: string; score?: number }[]
+  ): typeof results {
+    const dominated = new Set<number>();
+
+    for (let i = 0; i < results.length; i++) {
+      if (dominated.has(i)) continue;
+      const wordsA = new Set((results[i].content || '').toLowerCase().split(/\s+/));
+
+      for (let j = i + 1; j < results.length; j++) {
+        if (dominated.has(j)) continue;
+        const wordsB = new Set((results[j].content || '').toLowerCase().split(/\s+/));
+
+        // Jaccard similarity
+        let intersection = 0;
+        for (const w of wordsA) if (wordsB.has(w)) intersection++;
+        const union = wordsA.size + wordsB.size - intersection;
+        const jaccard = union > 0 ? intersection / union : 0;
+
+        if (jaccard > 0.7) {
+          // Keep the one with higher score (lower index = higher score from DB)
+          dominated.add(j);
+        }
+      }
+    }
+
+    return results.filter((_, idx) => !dominated.has(idx));
   }
 }

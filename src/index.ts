@@ -52,7 +52,7 @@ async function main() {
 
   const dbAdapter = new HyperDBAdapter({
     store,
-    dbName: 'biomed-rag-vectors',
+    dbName: 'biomed-rag-vectors-v2',
   });
 
   const embeddingFunction = async (text: string | string[]) => {
@@ -110,7 +110,13 @@ async function main() {
   // ─── 7. Define the query processor (used by API routes) ───
   async function* processQuery(
     query: string,
-    options: { uiLanguage?: 'en' | 'es', responseLanguage?: 'auto' | 'en' | 'es', evidenceMode?: 'original' | 'translated' | 'both', peerPublicKey?: string },
+    options: { 
+      uiLanguage?: 'en' | 'es'; 
+      responseLanguage?: 'auto' | 'en' | 'es'; 
+      evidenceMode?: 'original' | 'translated' | 'both'; 
+      peerPublicKey?: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
+    },
     documentId?: string,
     imageBase64?: string
   ): AsyncGenerator<{ type: string; data: unknown }> {

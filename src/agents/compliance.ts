@@ -192,6 +192,7 @@ export class ComplianceAgent {
       case 'accessory_consumable': return 'replace_accessory';
       case 'calibration': return 'recalibrate';
       case 'error_code': return 'follow_error_tree';
+      case 'general_inquiry': return 'follow_error_tree';
       case 'false_clinical_problem': return 'clinical_referral';
       default: return 'escalate';
     }

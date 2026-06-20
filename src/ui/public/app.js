@@ -128,6 +128,7 @@
   let currentLang = 'en';
   let isStreaming = false;
   let lastSelectedDoc = null;
+  let conversationHistory = [];
   let cachedDocuments = [];
   const sessionStats = { queries: 0, ttftSum: 0, tpsSum: 0, totalTokens: 0 };
 
@@ -136,6 +137,22 @@
   // ────────────────────────────────────────────
   const $ = (sel) => document.querySelector(sel);
   const chatMessages = $('#chat-messages');
+  let userHasScrolledUp = false;
+  let isProgrammaticScroll = false;
+
+  chatMessages.addEventListener('scroll', () => {
+    if (isProgrammaticScroll) {
+      isProgrammaticScroll = false;
+      return;
+    }
+    const threshold = 50;
+    const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight <= threshold;
+    if (isAtBottom) {
+      userHasScrolledUp = false;
+    } else {
+      userHasScrolledUp = true;
+    }
+  });
   const chatInput = $('#chat-input');
   const sendBtn = $('#send-btn');
   const welcomeMessage = $('#welcome-message');
@@ -254,8 +271,11 @@
 
   function scrollToBottom(force = false) {
     requestAnimationFrame(() => {
-      const isNearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 150;
-      if (isNearBottom || force) {
+      if (force) {
+        userHasScrolledUp = false;
+      }
+      if (!userHasScrolledUp) {
+        isProgrammaticScroll = true;
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     });
@@ -304,6 +324,26 @@
       if (!skip && trimmed.length > 0) { clean.push(line); }
     }
     return clean.join('\n').trim();
+  }
+
+  function extractThinkingProcess(text) {
+    const thinkStart = text.indexOf('<think>');
+    if (thinkStart === -1) return '';
+    const thinkEnd = text.indexOf('</think>', thinkStart);
+    if (thinkEnd === -1) {
+      return text.substring(thinkStart + 7);
+    }
+    return text.substring(thinkStart + 7, thinkEnd);
+  }
+
+  function stripThinkingProcess(text) {
+    const thinkStart = text.indexOf('<think>');
+    if (thinkStart === -1) return text;
+    const thinkEnd = text.indexOf('</think>', thinkStart);
+    if (thinkEnd === -1) {
+      return text.substring(0, thinkStart);
+    }
+    return text.substring(0, thinkStart) + text.substring(thinkEnd + 8);
   }
 
   // ────────────────────────────────────────────
@@ -392,6 +432,7 @@
     triageCategory,
     reasoningSummary,
     evidenceUsed,
+    sources,
     instructions,
     finalDisposition,
     lang,
@@ -445,11 +486,22 @@
     }
     
     // Evidence row
-    if (evidenceUsed) {
+    const hasCitations = Array.isArray(evidenceUsed) ? evidenceUsed.length > 0 : (typeof evidenceUsed === 'string' && evidenceUsed.trim().length > 0);
+    const hasSources = Array.isArray(sources) && sources.length > 0;
+
+    if (hasCitations || hasSources) {
+      let normalizedCitations = [];
+      if (Array.isArray(evidenceUsed)) {
+        normalizedCitations = evidenceUsed;
+      } else if (typeof evidenceUsed === 'string' && evidenceUsed.trim().length > 0) {
+        normalizedCitations = evidenceUsed.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      }
+
+      const detailsHtml = renderEvidenceDetailsHtml(normalizedCitations, sources, isEs);
       html += `
         <div class="diag-row">
           <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${isEs ? 'Evidencia' : 'Evidence'}:</span>
-          <span class="diag-row__value">${evidenceUsed}</span>
+          ${detailsHtml}
         </div>
       `;
     } else if (isStreaming) {
@@ -634,6 +686,7 @@
     let agentLabel = 'Biomed Field Copilot';
     let contentText = '';
     let thinkingText = '';
+    let liveThinkingText = '';
     let evidenceUsed = [];
     let sources = [];
     let disclaimers = [];
@@ -665,101 +718,184 @@
     const sectionState = {}; // { sectionKey: { text, animating, animationId } }
     let renderVersion = 0;
 
-    function renderLiveCard(showTypingIndicator = true) {
+    function renderLiveCard(showTypingIndicator = true, shouldScroll = true) {
       const contentEl = msgEl.querySelector('.message__content');
       if (!contentEl) return;
 
       renderVersion++;
 
-      // Hide JSON block from the live rendered text
-      let visibleText = contentText;
-      const jsonStartIdx = visibleText.lastIndexOf('```json');
-      if (jsonStartIdx !== -1) {
-        visibleText = visibleText.substring(0, jsonStartIdx);
-      } else {
-        const braceIdx = visibleText.lastIndexOf('{"instructions"');
-        if (braceIdx !== -1) {
-          visibleText = visibleText.substring(0, braceIdx);
-        }
-      }
-      
-      visibleText = sanitizeModelOutput(visibleText);
+      const liveThinking = liveThinkingText;
+      let visibleText = sanitizeModelOutput(contentText);
 
-      let evidenceText = '';
-      if (Array.isArray(evidenceUsed) && evidenceUsed.length > 0) {
-        evidenceText = evidenceUsed.join(', ');
-      } else if (sources.length > 0) {
-        evidenceText = sources.map(s => s.document).filter((v, i, a) => a.indexOf(v) === i).join(', ');
-      }
-
-      // Build the section data to compare with current state
+      // Build the section data
       const sections = buildSectionData({
         triageCategory,
         reasoningSummary: thinkingText,
-        evidenceUsed: evidenceText,
+        evidenceUsed,
+        sources,
         instructions: visibleText,
         finalDisposition,
         isStreaming: showTypingIndicator,
         lang: currentLang
       });
 
-      // Build the card HTML but use typewriter for new real-content sections
-      let cardInnerHtml = '';
-      for (const sec of sections) {
-        const prev = sectionState[sec.key];
-        if (sec.isLoading) {
-          // Loading placeholder - render directly, no typewriter
-          cardInnerHtml += sec.html;
-          // If this section was previously animating, cancel it
-          if (prev && prev.animating) {
-            prev.animating = false;
-          }
-        } else if (!prev || prev.text !== sec.text) {
-          // New content or changed content - render container, typewrite the value
-          cardInnerHtml += sec.html;
-          sectionState[sec.key] = { text: sec.text, animating: true, targetHtml: sec.valueHtml, version: renderVersion };
-        } else if (prev && prev.animating) {
-          // Same content, still animating - re-render the shell but keep the animation target
-          cardInnerHtml += sec.html;
-        } else {
-          // Same content, already done - render directly
-          cardInnerHtml += sec.html;
-        }
+      // Ensure the diagnostic-card container exists if we have sections
+      let diagCard = contentEl.querySelector('.diagnostic-card');
+      if (sections.length > 0 && !diagCard) {
+        diagCard = document.createElement('div');
+        diagCard.classList.add('diagnostic-card');
+        contentEl.appendChild(diagCard);
       }
 
-      contentEl.innerHTML = cardInnerHtml ? `<div class="diagnostic-card">${cardInnerHtml}</div>` : '';
+      // If we don't have sections, remove card
+      if (sections.length === 0 && diagCard) {
+        diagCard.remove();
+        diagCard = null;
+      }
 
-      // Now apply typewriter to any newly-appeared sections
-      const diagRows = contentEl.querySelectorAll('.diag-row');
-      diagRows.forEach((row) => {
-        const label = row.querySelector('.diag-row__label');
-        if (!label) return;
-        const sectionKey = label.textContent.trim();
-        
-        if (row.classList.contains('diag-row--loading')) return;
+      // Update or create each section row in the diagnostic-card
+      if (diagCard) {
+        sections.forEach((sec) => {
+          let row = diagCard.querySelector(`[data-section="${sec.sectionId}"]`);
+          const prev = sectionState[sec.key];
 
-        const state = sectionState[sectionKey];
-        if (!state || !state.animating) return;
-        if (state.version !== renderVersion) return; // Only animate on the render that created it
+          if (!row) {
+            // Row doesn't exist, create it by inserting HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = sec.html;
+            row = tempDiv.firstElementChild;
+            diagCard.appendChild(row);
 
-        const valueEl = row.querySelector('.diag-row__value') || row.querySelector('.diag-row__instructions');
-        if (!valueEl) return;
+            sectionState[sec.key] = {
+              text: sec.text,
+              isLoading: sec.isLoading,
+              animating: !sec.isLoading,
+              targetHtml: sec.valueHtml,
+              version: renderVersion
+            };
 
-        const targetHtml = state.targetHtml;
-        valueEl.innerHTML = '';
-        typewriteHtml(valueEl, targetHtml, 8, () => {
-          state.animating = false;
+            // If it has content and is not evidence, start typewriter
+            if (!sec.isLoading && sec.sectionId !== 'evidence') {
+              const valueEl = row.querySelector('.diag-row__value') || row.querySelector('.diag-row__instructions');
+              if (valueEl) {
+                valueEl.innerHTML = '';
+                typewriteHtml(valueEl, sec.valueHtml, 8, () => {
+                  if (sectionState[sec.key]) sectionState[sec.key].animating = false;
+                });
+              }
+            }
+          } else {
+            // Row exists. Check if state or content changed
+            const stateChanged = !prev || prev.text !== sec.text || prev.isLoading !== sec.isLoading;
+
+            if (stateChanged) {
+              // Update state
+              sectionState[sec.key] = {
+                text: sec.text,
+                isLoading: sec.isLoading,
+                animating: !sec.isLoading && prev && prev.isLoading,
+                targetHtml: sec.valueHtml,
+                version: renderVersion
+              };
+
+              if (sec.isLoading) {
+                // If it transitioned back to loading (rare), update the row HTML directly
+                row.outerHTML = sec.html;
+              } else {
+                // Transitioned from loading to loaded, or content updated
+                row.className = 'diag-row' + (sec.sectionId === 'action' ? ' diag-row--action' : '');
+                
+                // For Evidence: render instantly
+                if (sec.sectionId === 'evidence') {
+                  const label = row.querySelector('.diag-row__label');
+                  row.innerHTML = '';
+                  row.appendChild(label);
+                  row.insertAdjacentHTML('beforeend', sec.valueHtml);
+                } else {
+                  // For other rows: run typewriter if it transitioned from loading, else update instantly
+                  const valueEl = row.querySelector('.diag-row__value') || row.querySelector('.diag-row__instructions');
+                  if (valueEl) {
+                    if (prev && prev.isLoading) {
+                      valueEl.innerHTML = '';
+                      typewriteHtml(valueEl, sec.valueHtml, 8, () => {
+                        if (sectionState[sec.key]) sectionState[sec.key].animating = false;
+                      });
+                    } else {
+                      valueEl.innerHTML = sec.valueHtml;
+                    }
+                  }
+                }
+              }
+            }
+          }
         });
-      });
 
-      scrollToBottom();
+        // Remove any rows that are no longer in sections list
+        const existingSectionIds = sections.map(s => s.sectionId);
+        const allRows = diagCard.querySelectorAll('.diag-row');
+        allRows.forEach((r) => {
+          const sid = r.getAttribute('data-section');
+          if (sid && !existingSectionIds.includes(sid)) {
+            r.remove();
+          }
+        });
+      }
+
+      // Update or create Thinking Process (CoT) box at the bottom
+      let thinkEl = contentEl.querySelector('.message__thinking');
+      if (liveThinking && liveThinking.trim()) {
+        if (!thinkEl) {
+          thinkEl = document.createElement('div');
+          thinkEl.className = 'message__thinking bg-surface-container/30 border border-outline-variant/30 rounded p-sm mt-xs text-left';
+          thinkEl.style.marginTop = '8px';
+          
+          const headerHtml = `
+            <div class="font-label-mono text-[10px] text-primary/70 uppercase tracking-widest flex items-center gap-1.5 focus:outline-none mb-1 select-none">
+              <span class="material-symbols-outlined text-[16px] ${showTypingIndicator ? 'animate-pulse' : ''}">psychology</span>
+              <span>${currentLang === 'es' ? 'Pensamiento de la IA (CoT)' : 'AI Thinking Process (CoT)'}</span>
+            </div>
+            <div class="cot-scroll-container font-body-md text-on-surface-variant italic pl-2 border-l-2 border-primary/30 whitespace-pre-wrap text-[11px] leading-relaxed text-left" style="max-height: 200px; overflow-y: auto;"></div>
+          `;
+          thinkEl.innerHTML = headerHtml;
+          contentEl.appendChild(thinkEl);
+        }
+
+        const scrollContainer = thinkEl.querySelector('.cot-scroll-container');
+        if (scrollContainer && thinkEl.getAttribute('data-text') !== liveThinking.trim()) {
+          // Check if user is scrolled to the bottom of the CoT container before updating
+          const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight <= 30;
+          
+          scrollContainer.textContent = liveThinking.trim();
+          thinkEl.setAttribute('data-text', liveThinking.trim());
+          
+          if (isAtBottom) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+
+        // Keep pulse animation updated
+        const pulseIcon = thinkEl.querySelector('.material-symbols-outlined');
+        if (pulseIcon) {
+          if (showTypingIndicator) {
+            pulseIcon.classList.add('animate-pulse');
+          } else {
+            pulseIcon.classList.remove('animate-pulse');
+          }
+        }
+      } else if (thinkEl) {
+        thinkEl.remove();
+      }
+
+      if (shouldScroll) {
+        scrollToBottom();
+      }
     }
 
     /**
      * Build section data from the diagnostic response parameters.
      * Returns an array of section descriptors for diffing.
      */
-    function buildSectionData({ triageCategory: tc, reasoningSummary: rs, evidenceUsed: eu, instructions: ins, finalDisposition: fd, isStreaming: streaming, lang: lg }) {
+    function buildSectionData({ triageCategory: tc, reasoningSummary: rs, evidenceUsed: eu, sources: srcs, instructions: ins, finalDisposition: fd, isStreaming: streaming, lang: lg }) {
       const sections = [];
       const isEs = lg === 'es';
       const dotsHtml = `<span class="typing-indicator-inline"><span></span><span></span><span></span></span>`;
@@ -768,64 +904,82 @@
       if (tc) {
         const displayCategory = tc.replace(/_/g, ' ');
         sections.push({
+          sectionId: 'triage',
           key: 'Triage:',
           text: displayCategory,
           isLoading: false,
           valueHtml: displayCategory,
-          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value diag-row__value--triage">${displayCategory}</span></div>`
+          html: `<div class="diag-row" data-section="triage"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value diag-row__value--triage">${displayCategory}</span></div>`
         });
       } else if (streaming) {
         sections.push({
+          sectionId: 'triage',
           key: 'Triage:',
           text: '',
           isLoading: true,
           valueHtml: '',
-          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Clasificando' : 'Categorizing'}${dotsHtml}</span></div>`
+          html: `<div class="diag-row diag-row--loading" data-section="triage"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">label</span>Triage:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Clasificando' : 'Categorizing'}${dotsHtml}</span></div>`
         });
       }
 
       // Why this action
-      const whyLabel = isEs ? 'Por qu\u00e9 esta acci\u00f3n' : 'Why this action';
+      const whyLabel = isEs ? 'Por qué esta acción' : 'Why this action';
       if (rs) {
         sections.push({
+          sectionId: 'why',
           key: whyLabel + ':',
           text: rs,
           isLoading: false,
           valueHtml: rs,
-          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value">${rs}</span></div>`
+          html: `<div class="diag-row" data-section="why"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value">${rs}</span></div>`
         });
       } else if (streaming) {
         sections.push({
+          sectionId: 'why',
           key: whyLabel + ':',
           text: '',
           isLoading: true,
           valueHtml: '',
-          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Analizando diagn\u00f3stico' : 'Analyzing diagnosis'}${dotsHtml}</span></div>`
+          html: `<div class="diag-row diag-row--loading" data-section="why"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">lightbulb</span>${whyLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Analizando diagnóstico' : 'Analyzing diagnosis'}${dotsHtml}</span></div>`
         });
       }
 
       // Evidence
       const evidenceLabel = isEs ? 'Evidencia' : 'Evidence';
-      if (eu) {
+      const hasCitations = Array.isArray(eu) ? eu.length > 0 : (typeof eu === 'string' && eu.trim().length > 0);
+      const hasSources = Array.isArray(srcs) && srcs.length > 0;
+
+      if (hasCitations || hasSources) {
+        let normalizedCitations = [];
+        if (Array.isArray(eu)) {
+          normalizedCitations = eu;
+        } else if (typeof eu === 'string' && eu.trim().length > 0) {
+          normalizedCitations = eu.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        }
+
+        const detailsHtml = renderEvidenceDetailsHtml(normalizedCitations, srcs, isEs);
+
         sections.push({
+          sectionId: 'evidence',
           key: evidenceLabel + ':',
-          text: eu,
+          text: (normalizedCitations.join(',')) + '|' + (hasSources ? srcs.map(s => s.document + ':' + s.text.substring(0, 50)).join(',') : ''),
           isLoading: false,
-          valueHtml: eu,
-          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value">${eu}</span></div>`
+          valueHtml: detailsHtml,
+          html: `<div class="diag-row" data-section="evidence"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span>${detailsHtml}</div>`
         });
       } else if (streaming) {
         sections.push({
+          sectionId: 'evidence',
           key: evidenceLabel + ':',
           text: '',
           isLoading: true,
           valueHtml: '',
-          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span></div>`
+          html: `<div class="diag-row diag-row--loading" data-section="evidence"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span></div>`
         });
       }
 
       // Action
-      const actionLabel = isEs ? 'Acci\u00f3n' : 'Action';
+      const actionLabel = isEs ? 'Acción' : 'Action';
       if (ins && ins.trim()) {
         let cleanInstructions = ins.replace(/\\n/g, '\n');
         if (/\b2\.\s/.test(cleanInstructions) && !/^(?:1\.\s|1\)\s|[\-\*\u2022])/.test(cleanInstructions.trim())) {
@@ -834,40 +988,44 @@
         cleanInstructions = cleanInstructions.replace(/(?<!\d)\s+(\d+)\.\s+/g, '\n$1. ');
         const renderedInstructions = renderMarkdown(cleanInstructions.trim());
         sections.push({
+          sectionId: 'action',
           key: actionLabel + ':',
           text: cleanInstructions.trim(),
           isLoading: false,
           valueHtml: renderedInstructions,
-          html: `<div class="diag-row diag-row--action"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions">${renderedInstructions}</div></div>`
+          html: `<div class="diag-row diag-row--action" data-section="action"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions">${renderedInstructions}</div></div>`
         });
       } else if (streaming) {
         sections.push({
+          sectionId: 'action',
           key: actionLabel + ':',
           text: '',
           isLoading: true,
           valueHtml: '',
-          html: `<div class="diag-row diag-row--action diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Generando gu\u00eda de reparaci\u00f3n' : 'Generating repair guide'}${dotsHtml}</div></div>`
+          html: `<div class="diag-row diag-row--action diag-row--loading" data-section="action"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">settings</span>${actionLabel}:</span><div class="diag-row__instructions text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Generando guía de reparación' : 'Generating repair guide'}${dotsHtml}</div></div>`
         });
       }
 
       // Disposition
-      const dispLabel = isEs ? 'Disposici\u00f3n' : 'Disposition';
+      const dispLabel = isEs ? 'Disposición' : 'Disposition';
       if (fd) {
         const dispText = getFriendlyDisposition(fd, lg);
         sections.push({
+          sectionId: 'disposition',
           key: dispLabel + ':',
           text: dispText,
           isLoading: false,
           valueHtml: dispText,
-          html: `<div class="diag-row"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value diag-row__value--disposition">${dispText}</span></div>`
+          html: `<div class="diag-row" data-section="disposition"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value diag-row__value--disposition">${dispText}</span></div>`
         });
       } else if (streaming) {
         sections.push({
+          sectionId: 'disposition',
           key: dispLabel + ':',
           text: '',
           isLoading: true,
           valueHtml: '',
-          html: `<div class="diag-row diag-row--loading"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Evaluando estado final' : 'Evaluating final status'}${dotsHtml}</span></div>`
+          html: `<div class="diag-row diag-row--loading" data-section="disposition"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">flag</span>${dispLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Evaluando estado final' : 'Evaluating final status'}${dotsHtml}</span></div>`
         });
       }
 
@@ -920,7 +1078,8 @@
           responseLanguage: responseLanguageSelect ? responseLanguageSelect.value : 'auto',
           evidenceMode: evidenceModeSelect ? evidenceModeSelect.value : 'original',
           documentId: documentSelect.value,
-          imageBase64: sentImageBase64 
+          imageBase64: sentImageBase64,
+          history: conversationHistory
         }),
       });
 
@@ -959,8 +1118,7 @@
                 break;
               case 'content_delta':
                 contentText += data.text || '';
-                renderLiveCard();
-                scrollToBottom();
+                renderLiveCard(true, true);
                 break;
               case 'service_logic_meta':
                 if (data.reasoning_summary) {
@@ -969,9 +1127,11 @@
                 if (data.evidence_used) {
                   evidenceUsed = data.evidence_used;
                 }
-                renderLiveCard();
+                renderLiveCard(true, true);
                 break;
               case 'thinking_delta':
+                liveThinkingText += data.text || '';
+                renderLiveCard(true, false);
                 break;
               case 'stats':
                 stats = data;
@@ -1008,7 +1168,8 @@
       agent: currentAgent,
       agentLabel: agentLabel,
       content: contentText || t('no_response'),
-      thinking: thinkingText,
+      thinking: liveThinkingText,
+      reasoningSummary: thinkingText,
       sources,
       disclaimers,
       stats,
@@ -1016,6 +1177,9 @@
       finalDisposition,
       evidenceUsed
     });
+
+    conversationHistory.push({ role: 'user', content: query });
+    conversationHistory.push({ role: 'assistant', content: contentText || '' });
 
     if (stats) {
       sessionStats.queries++;
@@ -1034,7 +1198,7 @@
   }
 
   function updateAssistantMessage(msgEl, opts) {
-    const { query, agent, agentLabel, content, thinking, sources, disclaimers, stats, triageCategory, finalDisposition, evidenceUsed } = opts;
+    const { query, agent, agentLabel, content, thinking, reasoningSummary, sources, disclaimers, stats, triageCategory, finalDisposition, evidenceUsed } = opts;
 
     msgEl.setAttribute('data-agent', agent);
 
@@ -1063,39 +1227,57 @@
     const contentEl = document.createElement('div');
     contentEl.classList.add('message__content');
     
-    // Strip JSON block from final render
-    let visibleFinalText = content;
-    const finalJsonStartIdx = visibleFinalText.lastIndexOf('```json');
-    if (finalJsonStartIdx !== -1) {
-      visibleFinalText = visibleFinalText.substring(0, finalJsonStartIdx);
-    } else {
-      const braceIdx = visibleFinalText.lastIndexOf('{"instructions"');
-      if (braceIdx !== -1) {
-        visibleFinalText = visibleFinalText.substring(0, braceIdx);
-      }
-    }
-    
-    visibleFinalText = sanitizeModelOutput(visibleFinalText);
-    
-    let evidenceText = '';
-    if (Array.isArray(evidenceUsed) && evidenceUsed.length > 0) {
-      evidenceText = evidenceUsed.join(', ');
-    } else if (sources && sources.length > 0) {
-      evidenceText = sources.map(s => s.document).filter((v, i, a) => a.indexOf(v) === i).join(', ');
-    }
+    // Content is now cleanly separated from thinking at the source
+    // No need to strip <think> tags or JSON blocks
+    const finalThinking = thinking || '';
+    let visibleFinalText = sanitizeModelOutput(content);
 
     contentEl.innerHTML = renderDiagnosticResponse({
       triageCategory,
-      reasoningSummary: thinking,
-      evidenceUsed: evidenceText,
+      reasoningSummary: reasoningSummary || '',
+      evidenceUsed,
+      sources,
       instructions: visibleFinalText,
       finalDisposition,
-      sourcesCount: sources ? sources.length : 0,
-      isStreaming: false,
-      lang: currentLang
+      lang: currentLang,
+      isStreaming: false
     });
     
     body.appendChild(contentEl);
+
+    // Collapsible Thinking Process (CoT)
+    if (finalThinking && finalThinking.trim()) {
+      const thinkDetailsEl = document.createElement('details');
+      thinkDetailsEl.classList.add('message__sources-details');
+      
+      const thinkSummaryEl = document.createElement('summary');
+      thinkSummaryEl.classList.add('message__sources-summary');
+      thinkSummaryEl.style.marginTop = '6px';
+      thinkSummaryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">psychology</span><strong>${currentLang === 'es' ? 'Ver Lógica de Razonamiento (CoT)' : 'View Reasoning Logic (CoT)'}</strong>`;
+      thinkDetailsEl.appendChild(thinkSummaryEl);
+
+      const MAX_COT_CHARS = 2000;
+      let displayThinking = finalThinking.trim();
+      if (displayThinking.length > MAX_COT_CHARS) {
+        displayThinking = displayThinking.substring(0, MAX_COT_CHARS) + '\n\n[... truncated for display]';
+      }
+
+      const thinkTextEl = document.createElement('div');
+      thinkTextEl.classList.add('message__sources');
+      thinkTextEl.style.fontSize = '11px';
+      thinkTextEl.style.fontStyle = 'italic';
+      thinkTextEl.style.whiteSpace = 'pre-wrap';
+      thinkTextEl.style.borderLeft = '2px solid rgba(var(--primary-rgb), 0.3)';
+      thinkTextEl.style.paddingLeft = '8px';
+      thinkTextEl.style.marginTop = '8px';
+      thinkTextEl.style.textAlign = 'left';
+      thinkTextEl.style.maxHeight = '300px';
+      thinkTextEl.style.overflowY = 'auto';
+      thinkTextEl.textContent = displayThinking;
+      
+      thinkDetailsEl.appendChild(thinkTextEl);
+      body.appendChild(thinkDetailsEl);
+    }
 
     // Update Dashboard active session snippet
     const dashSnippet = document.getElementById('dash-latest-assistant-text');
@@ -1123,41 +1305,6 @@
         <span>⏳ ${((stats.total_time_ms || 0) / 1000).toFixed(1)}s total</span>
       `;
       body.appendChild(statsEl);
-    }
-
-    // RAG Sources (collapsible Audit log)
-    if (sources && sources.length > 0) {
-      const detailsEl = document.createElement('details');
-      detailsEl.classList.add('message__sources-details');
-      
-      const summaryEl = document.createElement('summary');
-      summaryEl.classList.add('message__sources-summary');
-      summaryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">search</span><strong>${currentLang === 'es' ? 'Ver Evidencia de Auditoría' : 'View Audit Evidence'}</strong> (${sources.length} ${currentLang === 'es' ? 'fuentes RAG' : 'RAG sources'})`;
-      detailsEl.appendChild(summaryEl);
-
-      const srcEl = document.createElement('div');
-      srcEl.classList.add('message__sources');
-      sources.forEach((src) => {
-        const item = document.createElement('div');
-        item.classList.add('message__source-item');
-
-        let evidenceHtml = `<strong><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:2px">description</span>${src.document}</strong> <span class="source-match">(${(src.similarity * 100).toFixed(0)}% match)</span>`;
-        
-        // Original text from manual
-        if (src.text) {
-          evidenceHtml += `<div class="evidence-original"><em>"...${src.text.substring(0, 200)}..."</em></div>`;
-        }
-
-        // Translated text (if available via NMT)
-        if (src.translatedText) {
-          evidenceHtml += `<details class="evidence-translated"><summary><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">translate</span>Show translation</summary><em>"...${src.translatedText.substring(0, 200)}..."</em></details>`;
-        }
-
-        item.innerHTML = evidenceHtml;
-        srcEl.appendChild(item);
-      });
-      detailsEl.appendChild(srcEl);
-      body.appendChild(detailsEl);
     }
 
     // Disclaimers
@@ -1466,13 +1613,13 @@
       let query = '';
 
       const lowerDoc = doc.toLowerCase();
-      if (lowerDoc.includes('oximeter') || lowerDoc.includes('spo2') || lowerDoc.includes('pulse')) {
+      if (lowerDoc.includes('oximeter') || lowerDoc.includes('spo2') || lowerDoc.includes('pulse') || lowerDoc.includes('passport') || lowerDoc.includes('52000')) {
         icon = 'monitor_heart';
         subtitle = isEs ? 'Problemas de sensor / medición' : 'Sensor / measurement issues';
         query = isEs 
           ? `¿Cómo soluciono errores de lectura intermitente o "probe off" en el equipo ${displayName}?`
           : `How do I troubleshoot intermittent readings or "probe off" errors on the ${displayName}?`;
-      } else if (lowerDoc.includes('pump') || lowerDoc.includes('infusion') || lowerDoc.includes('d3d2')) {
+      } else if (lowerDoc.includes('pump') || lowerDoc.includes('infusion') || lowerDoc.includes('infusomat')) {
         icon = 'vaccines';
         subtitle = isEs ? 'Alarmas de oclusión / flujo' : 'Occlusion / flow alarms';
         query = isEs
@@ -1484,7 +1631,7 @@
         query = isEs
           ? `¿Cómo calibro o soluciono problemas de volumen tidal en el ventilador ${displayName}?`
           : `How do I calibrate or troubleshoot tidal volume issues on the ${displayName} ventilator?`;
-      } else if (lowerDoc.includes('defib') || lowerDoc.includes('aed')) {
+      } else if (lowerDoc.includes('defib') || lowerDoc.includes('aed') || lowerDoc.includes('d3d2')) {
         icon = 'bolt';
         subtitle = isEs ? 'Impedancia / descarga' : 'Impedance / discharge';
         query = isEs
@@ -1602,6 +1749,7 @@
 
       if (documentSelect.value !== lastSelectedDoc) {
         lastSelectedDoc = documentSelect.value;
+        conversationHistory = [];
         
         // Notify backend to start a new logging session
         fetch('/api/sessions/new', {
@@ -1749,6 +1897,7 @@
       chatMessages.appendChild(welcomeMessage);
       welcomeMessage.style.display = '';
     }
+    conversationHistory = [];
     sessionStats.queries = 0;
     sessionStats.ttftSum = 0;
     sessionStats.tpsSum = 0;
@@ -2788,7 +2937,7 @@
         // Gather variables for card rendering
         const displayTriage = entry.triage_category || parsedJson?.triage_category || '';
         const displayReasoning = parsedJson?.reasoning_summary || entry.reasoningSummary || entry.reasoning_summary || '';
-        const displayEvidence = (parsedJson?.evidence_used && parsedJson.evidence_used.join(', ')) || entry.selected_document || '';
+        const displayEvidence = parsedJson?.evidence_used || entry.selected_document || '';
         const displayInstructions = parsedJson?.instructions || visibleText;
         const displayDisposition = entry.final_disposition || parsedJson?.final_disposition || '';
 
@@ -3034,6 +3183,95 @@
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  function renderEvidenceDetailsHtml(citations, sources, isEs) {
+    const citesCount = Array.isArray(citations) ? citations.length : 0;
+    const srcsCount = Array.isArray(sources) ? sources.length : 0;
+    let summaryText = '';
+    if (isEs) {
+      summaryText = `${citesCount} citas, ${srcsCount} fuentes RAG`;
+    } else {
+      summaryText = `${citesCount} citations, ${srcsCount} RAG sources`;
+    }
+
+    let innerHtml = '';
+
+    // 1. Citations
+    if (citesCount > 0) {
+      innerHtml += `
+        <div class="evidence-citations" style="margin-bottom: 0.75rem;">
+          <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; color: #859490; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined text-[12px] text-[#57f1db]">bookmark</span>
+            <span>${isEs ? 'Citas de Manuales' : 'Manual Citations'}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            ${citations.map(citation => `
+              <span class="inline-flex items-center gap-1 bg-[#1a2436] border border-[#2a3548] px-2 py-0.5 rounded text-[11px] text-[#d8e3fb]" style="border-radius: 4px; padding: 2px 6px; font-size: 11px; background-color: #1a2436; border: 1px solid #2a3548; display: inline-flex; align-items: center;">
+                <span class="material-symbols-outlined text-[12px] text-[#57f1db]" style="font-variation-settings: 'FILL' 1; font-size: 12px; margin-right: 2px;">bookmark</span>
+                ${escapeHtml(citation)}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. RAG Sources
+    if (srcsCount > 0) {
+      innerHtml += `
+        <div class="evidence-sources">
+          <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; color: #859490; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined text-[12px] text-[#57f1db]">menu_book</span>
+            <span>${isEs ? 'Fragmentos del Manual (RAG)' : 'Manual Excerpts (RAG)'}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            ${sources.map((src, index) => {
+              const matchPercentage = Math.round((src.similarity || 0) * 100);
+              const originalSnippet = src.text ? src.text.trim() : '';
+              const translatedSnippet = src.translatedText ? src.translatedText.trim() : '';
+              
+              return `
+                <details class="source-excerpt-details" style="border: 1px solid rgba(60, 74, 70, 0.3); border-radius: 4px; background-color: rgba(4, 14, 31, 0.25); overflow: hidden;">
+                  <summary class="source-excerpt-summary" style="padding: 6px 10px; font-size: 11px; color: #bacac5; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span class="material-symbols-outlined text-[14px]" style="color: #57f1db;">description</span>
+                      <strong>Source ${index + 1}:</strong> <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(src.document)}</span>
+                      <span class="source-match" style="font-size: 9px; padding: 1px 4px; background: rgba(87, 241, 219, 0.08); border: 1px solid rgba(87, 241, 219, 0.2); border-radius: 2px;">${matchPercentage}% match</span>
+                    </div>
+                    <span class="material-symbols-outlined chevron-icon" style="font-size: 14px; transition: transform 0.2s;">expand_more</span>
+                  </summary>
+                  <div class="source-excerpt-content" style="padding: 10px; font-size: 11px; color: #a7b6cc; line-height: 1.5; border-top: 1px solid rgba(60, 74, 70, 0.2); background-color: rgba(8, 20, 37, 0.4);">
+                    <div style="font-family: 'Geist', sans-serif; font-style: italic;">"...${escapeHtml(originalSnippet)}..."</div>
+                    ${translatedSnippet ? `
+                      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(60, 74, 70, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 9px; color: #57f1db; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 4px;">
+                          <span class="material-symbols-outlined" style="font-size: 12px;">translate</span>
+                          ${isEs ? 'Traducción' : 'Translation'}
+                        </div>
+                        <div style="font-family: 'Geist', sans-serif; font-style: italic;">"...${escapeHtml(translatedSnippet)}..."</div>
+                      </div>
+                    ` : ''}
+                  </div>
+                </details>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <details class="evidence-details">
+        <summary class="evidence-summary">
+          <span>${summaryText}</span>
+          <span class="material-symbols-outlined evidence-chevron" style="font-size: 16px; transition: transform 0.2s;">expand_more</span>
+        </summary>
+        <div class="evidence-content">
+          ${innerHtml}
+        </div>
+      </details>
+    `;
   }
 
   // ────────────────────────────────────────────

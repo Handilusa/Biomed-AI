@@ -43,7 +43,7 @@ const KEYWORD_RULES: Array<{ patterns: RegExp[]; category: TriageResult['categor
   {
     patterns: [
       /error\s*(code|#|number)?\s*\d+/i, /alarm\s*(code)?\s*#?\d+/i, /E-?\d{2,}/i,
-      /fault\s*(code)?\s*\d+/i, /c[óo]digo\s*(de\s*)?(error|alarma|falla)\s*#?\d*/i,
+      /fault\s*(code)?\s*\d+/i, /c[óo]digo\s*(de\s*)?(error|alarma|falla)\s*#?\d+/i,
       /error\s+\d{2,}/i, /alarma?\s+\d{2,}/i
     ],
     category: 'error_code',
@@ -87,7 +87,13 @@ function keywordPreClassify(query: string): TriageResult | null {
 export class TriageAgent {
   constructor(private modelManager: ModelManager, private config: AppConfig) {}
 
-  async run(query: string, lang: 'en' | 'es', imageBase64?: string, peerPublicKey?: string): Promise<{
+  async run(
+    query: string,
+    lang: 'en' | 'es',
+    imageBase64?: string,
+    peerPublicKey?: string,
+    history?: { role: 'user' | 'assistant'; content: string }[]
+  ): Promise<{
     result: TriageResult;
     stats?: { prompt_tokens: number; completion_tokens: number };
   }> {
@@ -113,6 +119,7 @@ export class TriageAgent {
       modelId,
       history: [
         { role: 'system', content: systemPrompt },
+        ...(history || []),
         { role: 'user', content }
       ],
       stream: false,
@@ -161,7 +168,7 @@ export class TriageAgent {
       const parsed = JSON.parse(jsonStr) as TriageResult;
       
       // Validate category
-      const validCategories = ['accessory_consumable', 'wiring_connector', 'power_source', 'internal_module', 'configuration_use', 'error_code', 'calibration', 'false_clinical_problem'];
+      const validCategories = ['accessory_consumable', 'wiring_connector', 'power_source', 'internal_module', 'configuration_use', 'error_code', 'calibration', 'false_clinical_problem', 'general_inquiry'];
       if (!validCategories.includes(parsed.category)) {
         throw new Error(`Invalid category: ${parsed.category}`);
       }

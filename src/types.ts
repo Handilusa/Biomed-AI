@@ -14,7 +14,8 @@ export type TriageCategory =
   | 'configuration_use'
   | 'error_code'
   | 'calibration'
-  | 'false_clinical_problem';
+  | 'false_clinical_problem'
+  | 'general_inquiry';
 
 export interface TriageResult {
   category: TriageCategory;
@@ -231,6 +232,7 @@ export interface ChatRequest {
   documentId?: string;
   imageBase64?: string; // New field for OCR / Vision
   peerPublicKey?: string; // New field for P2P swarm delegated inference
+  history?: { role: 'user' | 'assistant'; content: string }[];
 }
 
 export type SSEEventType =
