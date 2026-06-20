@@ -229,6 +229,12 @@ For a description of fields and the verification checklist, see [EVIDENCE.md](EV
 
 ---
 
+## 📅 Changelog
+
+For a detailed list of features, safety improvements, and scroll performance optimizations applied to this release, see [CHANGELOG.md](CHANGELOG.md).
+
+---
+
 ## 👤 Author & Contact
 
 *   **Twitter/X**: [@Cebohia18](https://x.com/Cebohia18)
