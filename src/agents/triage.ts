@@ -27,6 +27,22 @@ const KEYWORD_RULES: Array<{ patterns: RegExp[]; category: TriageResult['categor
     signals: ['ECG', 'lead', 'cable', 'latiguillo'],
   },
   {
+    // Defibrillator electrode/pad/cable issues — impedance errors, shock delivery failures.
+    // Field-service data: >85% of defibrillator impedance errors trace to external cable/electrode faults.
+    patterns: [
+      /(?:defib|aed|dea|desfib).*(?:electrode|pad|parche|cable|lead)/i,
+      /(?:electrode|pad|parche).*(?:impedance|impedancia|error|fault|fail)/i,
+      /(?:impedance|impedancia).*(?:electrode|pad|parche|cable|defib|aed)/i,
+      /(?:shock|descarga).*(?:error|fail|abort|no.*deliver)/i,
+      /(?:no|failed|abort).*(?:shock|discharge|descarga|deliver)/i,
+      /(?:high|low|out.of.range).*impedance/i,
+      /impedance.*(?:high|low|out.of.range|check|error)/i,
+      /(?:electrode|pad|parche).*(?:expired|dry|vencid|sec[oa])/i,
+    ],
+    category: 'wiring_connector',
+    signals: ['defibrillator', 'electrode', 'impedance', 'pad', 'shock error'],
+  },
+  {
     patterns: [
       /power.?cord/i, /power.?cable/i, /no.?power/i, /turns off/i, /intermittent.*power/i,
       /cable.*(corriente|alimentaci[óo]n)/i, /no.*enciende/i, /bater[ií]a/i, /battery/i,
@@ -82,6 +98,80 @@ function keywordPreClassify(query: string): TriageResult | null {
     }
   }
   return null;
+}
+
+// ─── Post-LLM Consistency Validator ───
+// Catches contradictions where the LLM assigns a category that conflicts
+// with the actual symptoms described in the query. This runs AFTER the LLM
+// classification and BEFORE the result reaches the orchestrator.
+function validateTriageConsistency(result: TriageResult, query: string): TriageResult {
+  const q = query.toLowerCase();
+
+  // ── Override 1: internal_module → wiring_connector ──
+  // If the LLM said "internal_module" but the query clearly describes
+  // external cable/connector/electrode symptoms, reclassify.
+  if (result.category === 'internal_module') {
+    const externalSignals = [
+      /\b(cable|connector|electrode|pad|parche|lead|probe|sonda|wire)\b/i,
+      /\b(impedance|impedancia)\b/i,
+      /\b(plug|unplug|disconnect|loose|suelto|desconect)\b/i,
+    ];
+    const matchedExternal = externalSignals.filter(r => r.test(q));
+    if (matchedExternal.length >= 2) {
+      console.log(`[Triage] 🔄 Consistency override: internal_module → wiring_connector (${matchedExternal.length} external signals detected)`);
+      return {
+        ...result,
+        category: 'wiring_connector',
+        confidence: Math.max(result.confidence - 0.1, 0.5),
+        reasoning: `Consistency override: query mentions external components (${matchedExternal.length} signals) but was classified as internal_module. Reclassified to wiring_connector for external-first diagnosis.`,
+      };
+    }
+  }
+
+  // ── Override 2: general_inquiry → specific category ──
+  // If the LLM said "general_inquiry" but the query describes a specific
+  // fault/error (not a general question), reclassify to the most likely category.
+  if (result.category === 'general_inquiry') {
+    const faultIndicators = [
+      /\b(error|fault|fail|alarm|falla|alarma|fallo)\b/i,
+      /\b(not working|no funciona|doesn't work|won't|broken|roto|da[ñn]ado)\b/i,
+      /\b(impedance|impedancia|shock|descarga|abort)\b/i,
+    ];
+    const hasFault = faultIndicators.some(r => r.test(q));
+    if (hasFault) {
+      const hasElectrodeContext = /\b(electrode|pad|parche|cable|lead|probe|connector|sonda)\b/i.test(q);
+      const hasPowerContext = /\b(power|battery|bater[ií]a|enciende|turns?\s*on|apaga|shut)\b/i.test(q);
+
+      if (hasElectrodeContext) {
+        console.log(`[Triage] 🔄 Consistency override: general_inquiry → wiring_connector (fault + external component references)`);
+        return {
+          ...result,
+          category: 'wiring_connector',
+          confidence: 0.7,
+          reasoning: 'Consistency override: classified as general_inquiry but contains specific fault indicators with external component references.',
+        };
+      }
+      if (hasPowerContext) {
+        console.log(`[Triage] 🔄 Consistency override: general_inquiry → power_source (fault + power references)`);
+        return {
+          ...result,
+          category: 'power_source',
+          confidence: 0.7,
+          reasoning: 'Consistency override: classified as general_inquiry but contains specific fault indicators with power references.',
+        };
+      }
+      // Fault present but no clear external/power context → internal_module as safe default
+      console.log(`[Triage] 🔄 Consistency override: general_inquiry → internal_module (fault indicators present, no specific external context)`);
+      return {
+        ...result,
+        category: 'internal_module',
+        confidence: 0.6,
+        reasoning: 'Consistency override: classified as general_inquiry but contains specific fault indicators. Reclassified to internal_module.',
+      };
+    }
+  }
+
+  return result; // No override needed — original classification is consistent
 }
 
 export class TriageAgent {
@@ -174,8 +264,15 @@ export class TriageAgent {
       }
       
       console.log(`[Triage] ✅ LLM classified as: ${parsed.category} (confidence: ${parsed.confidence})`);
+      
+      // Apply post-LLM consistency validation
+      const validated = validateTriageConsistency(parsed, query);
+      if (validated.category !== parsed.category) {
+        console.log(`[Triage] 🔄 Final category after consistency check: ${validated.category}`);
+      }
+      
       return {
-        result: parsed,
+        result: validated,
         stats: { prompt_tokens: promptTokens, completion_tokens: completionTokens }
       };
     } catch (e) {

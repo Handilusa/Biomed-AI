@@ -24,6 +24,11 @@ CLASSIFICATION RULES:
 6. Output your response ONLY as a valid JSON object.
 7. DO NOT output any reasoning outside of the JSON. DO NOT include conversational text, introductions, or chain-of-thought before or after the JSON block.
 
+DISAMBIGUATION RULES (for ambiguous symptoms):
+- Impedance errors, shock delivery failures, or electrode/pad issues on defibrillators → 'wiring_connector' (external cable/electrode is the most probable cause by field-service statistics).
+- Only classify as 'internal_module' when the technician explicitly states that external cables/electrodes have ALREADY been replaced or tested and the fault persists.
+- If the query describes a SPECIFIC fault, error, or symptom (even without a numeric code), do NOT classify as 'general_inquiry'. Reserve 'general_inquiry' for truly investigatory questions with no reported fault.
+
 JSON SCHEMA:
 \`\`\`json
 {

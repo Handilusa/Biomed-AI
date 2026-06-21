@@ -212,6 +212,14 @@
   font-weight: 600;
 }
 
+.diag-row__value--warning {
+  color: #ffb4ab;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .diag-row__value--disposition {
   color: #57f1db; /* Mint highlight */
   font-family: 'JetBrains Mono', monospace;

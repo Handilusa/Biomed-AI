@@ -511,6 +511,19 @@
           <span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span>
         </div>
       `;
+    } else {
+      const fallbackText = isEs 
+        ? 'Consulta no encontrada en los manuales de servicio. Use esta información como no verificada.' 
+        : 'Query not found in service manuals. Treat the provided information as unverified.';
+      html += `
+        <div class="diag-row" data-section="evidence">
+          <span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${isEs ? 'Evidencia' : 'Evidence'}:</span>
+          <span class="diag-row__value diag-row__value--warning">
+            <span class="material-symbols-outlined text-[14px]" style="font-size:14px;vertical-align:middle;">warning</span>
+            ${fallbackText}
+          </span>
+        </div>
+      `;
     }
     
     // Action row
@@ -697,23 +710,142 @@
     const sentImageBase64 = currentImageBase64;
     clearImageSelection();
 
-    // Typing indicator
+    // Typing indicator & Agent Steps Indicators
     const msgEl = document.createElement('div');
     msgEl.classList.add('message', 'message--assistant');
+
+    const isEs = currentLang === 'es';
+    const stepsData = [
+      { id: 'classifying', label: isEs ? 'Clasificando' : 'Classifying', icon: 'label' },
+      { id: 'searching', label: isEs ? 'Buscando manuales' : 'Searching manuals', icon: 'menu_book' },
+      { id: 'reasoning', label: isEs ? 'Razonando' : 'Reasoning', icon: 'psychology' },
+      { id: 'compliance', label: isEs ? 'Cumplimiento' : 'Compliance check', icon: 'gavel' }
+    ];
+
+    const stepsHtml = stepsData.map((step, idx) => {
+      const stepHtml = `
+        <div class="agent-step flex items-center gap-1 px-1.5 py-0.5 rounded opacity-30 transition-all duration-300" id="step-${step.id}" data-step="${step.id}">
+          <span class="step-icon material-symbols-outlined text-[14px]">${step.icon}</span>
+          <span class="step-text font-label-mono text-[9px] uppercase tracking-wider">${step.label}</span>
+        </div>
+      `;
+      const arrowHtml = idx < stepsData.length - 1 ? `
+        <div class="step-connector hidden sm:block h-[1px] flex-1 bg-outline-variant/30 relative" id="connector-${step.id}">
+          <div class="step-connector-progress absolute left-0 top-0 h-full bg-primary w-0"></div>
+        </div>
+      ` : '';
+      return stepHtml + arrowHtml;
+    }).join('');
+
     msgEl.innerHTML = `
       <div class="message__avatar">⏳</div>
       <div class="message__body">
         <div class="message__content">
-          <div class="typing-indicator">
-            <span class="typing-indicator__dot"></span>
-            <span class="typing-indicator__dot"></span>
-            <span class="typing-indicator__dot"></span>
+          <div class="agent-steps-indicator mb-3 p-3 bg-surface-container-high/40 border border-outline-variant/30 rounded flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 overflow-hidden">
+            ${stepsHtml}
           </div>
         </div>
       </div>
     `;
     chatMessages.appendChild(msgEl);
     scrollToBottom(true);
+
+    let lastActiveStepId = null;
+
+    function transitionToStep(stepId) {
+      const stepsContainer = msgEl.querySelector('.agent-steps-indicator');
+      if (!stepsContainer) return;
+      const activeStep = stepsContainer.querySelector(`#step-${stepId}`);
+      if (!activeStep) return;
+
+      // 1. If there was a previous step, mark it as completed
+      if (lastActiveStepId && lastActiveStepId !== stepId) {
+        const prevStep = stepsContainer.querySelector(`#step-${lastActiveStepId}`);
+        const connector = stepsContainer.querySelector(`#connector-${lastActiveStepId} .step-connector-progress`);
+        
+        if (prevStep) {
+          gsap.killTweensOf(prevStep);
+          gsap.killTweensOf(prevStep.querySelector('.step-icon'));
+          gsap.to(prevStep, { opacity: 0.8, scale: 1, backgroundColor: 'transparent', duration: 0.3 });
+          gsap.to(prevStep.querySelector('.step-icon'), { color: '#57f1db', scale: 1, filter: 'none', duration: 0.3 });
+          gsap.to(prevStep.querySelector('.step-text'), { color: '#57f1db', duration: 0.3 });
+        }
+        
+        if (connector) {
+          gsap.to(connector, { width: '100%', duration: 0.4, ease: 'power1.inOut' });
+        }
+      }
+
+      // 2. Animate the new active step
+      gsap.to(activeStep, { opacity: 1, scale: 1.05, duration: 0.3 });
+      gsap.to(activeStep.querySelector('.step-icon'), { color: '#57f1db', duration: 0.3 });
+      gsap.to(activeStep.querySelector('.step-text'), { color: '#ffffff', duration: 0.3 });
+
+      // Pulsing background and rotating active icon
+      gsap.fromTo(activeStep,
+        { backgroundColor: 'rgba(87, 241, 219, 0)' },
+        { backgroundColor: 'rgba(87, 241, 219, 0.08)', repeat: -1, yoyo: true, duration: 0.8, ease: 'sine.inOut' }
+      );
+
+      gsap.fromTo(activeStep.querySelector('.step-icon'), 
+        { scale: 0.9, opacity: 0.7, filter: 'drop-shadow(0 0 2px rgba(87, 241, 219, 0.2))' },
+        { scale: 1.15, opacity: 1, filter: 'drop-shadow(0 0 6px rgba(87, 241, 219, 0.7))', repeat: -1, yoyo: true, duration: 0.7, ease: 'power1.inOut' }
+      );
+
+      lastActiveStepId = stepId;
+    }
+
+    function completeAllSteps(success = true) {
+      const stepsContainer = msgEl.querySelector('.agent-steps-indicator');
+      if (!stepsContainer) return;
+
+      // 1. Mark the last active step as completed or error
+      if (lastActiveStepId) {
+        const prevStep = stepsContainer.querySelector(`#step-${lastActiveStepId}`);
+        if (prevStep) {
+          gsap.killTweensOf(prevStep);
+          gsap.killTweensOf(prevStep.querySelector('.step-icon'));
+          if (success) {
+            gsap.to(prevStep, { opacity: 0.8, scale: 1, backgroundColor: 'transparent', duration: 0.3 });
+            gsap.to(prevStep.querySelector('.step-icon'), { color: '#57f1db', scale: 1, filter: 'none', duration: 0.3 });
+            gsap.to(prevStep.querySelector('.step-text'), { color: '#57f1db', duration: 0.3 });
+          } else {
+            // Failure color (red/error)
+            gsap.to(prevStep, { opacity: 1, scale: 1.05, backgroundColor: 'rgba(255, 180, 171, 0.08)', duration: 0.3 });
+            gsap.to(prevStep.querySelector('.step-icon'), { color: '#ffb4ab', scale: 1, filter: 'none', duration: 0.3 });
+            gsap.to(prevStep.querySelector('.step-text'), { color: '#ffb4ab', duration: 0.3 });
+          }
+        }
+      }
+
+      // 2. Animate the remaining connectors
+      const progressConnectors = stepsContainer.querySelectorAll('.step-connector-progress');
+      progressConnectors.forEach(conn => {
+        if (success && conn.style.width !== '100%') {
+          gsap.to(conn, { width: '100%', duration: 0.3 });
+        }
+      });
+
+      // 3. Slide up and fade out the container
+      gsap.to(stepsContainer, { 
+        height: 0, 
+        opacity: 0, 
+        marginTop: 0, 
+        marginBottom: 0, 
+        paddingTop: 0, 
+        paddingBottom: 0, 
+        borderWidth: 0,
+        duration: 0.6, 
+        delay: success ? 1.2 : 3.0, // give more time if there was an error
+        ease: 'power2.inOut',
+        onComplete: () => {
+          stepsContainer.remove();
+        }
+      });
+    }
+
+    // Start with classifying active
+    transitionToStep('classifying');
 
     const sectionState = {}; // { sectionKey: { text, animating, animationId } }
     let renderVersion = 0;
@@ -851,13 +983,28 @@
           
           const headerHtml = `
             <div class="font-label-mono text-[10px] text-primary/70 uppercase tracking-widest flex items-center gap-1.5 focus:outline-none mb-1 select-none">
-              <span class="material-symbols-outlined text-[16px] ${showTypingIndicator ? 'animate-pulse' : ''}">psychology</span>
+              <span class="cot-brain-icon material-symbols-outlined text-[16px]">psychology</span>
               <span>${currentLang === 'es' ? 'Pensamiento de la IA (CoT)' : 'AI Thinking Process (CoT)'}</span>
             </div>
             <div class="cot-scroll-container font-body-md text-on-surface-variant italic pl-2 border-l-2 border-primary/30 whitespace-pre-wrap text-[11px] leading-relaxed text-left" style="max-height: 200px; overflow-y: auto;"></div>
           `;
           thinkEl.innerHTML = headerHtml;
           contentEl.appendChild(thinkEl);
+
+          // GSAP border pulse when active
+          gsap.fromTo(thinkEl, 
+            { borderColor: 'rgba(87, 241, 219, 0.2)' },
+            { borderColor: 'rgba(87, 241, 219, 0.6)', repeat: -1, yoyo: true, duration: 1.5, ease: 'sine.inOut' }
+          );
+
+          // GSAP brain icon rotation
+          const brainIcon = thinkEl.querySelector('.cot-brain-icon');
+          if (brainIcon) {
+            gsap.fromTo(brainIcon, 
+              { scale: 0.85, opacity: 0.6 },
+              { scale: 1.1, opacity: 1, repeat: -1, yoyo: true, duration: 0.8, ease: 'sine.inOut' }
+            );
+          }
         }
 
         const scrollContainer = thinkEl.querySelector('.cot-scroll-container');
@@ -865,7 +1012,15 @@
           // Check if user is scrolled to the bottom of the CoT container before updating
           const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight <= 30;
           
-          scrollContainer.textContent = liveThinking.trim();
+          if (showTypingIndicator) {
+            scrollContainer.innerHTML = liveThinking.trim()
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              + '<span class="animate-pulse text-primary font-bold ml-0.5">▋</span>';
+          } else {
+            scrollContainer.textContent = liveThinking.trim();
+          }
           thinkEl.setAttribute('data-text', liveThinking.trim());
           
           if (isAtBottom) {
@@ -873,13 +1028,17 @@
           }
         }
 
-        // Keep pulse animation updated
-        const pulseIcon = thinkEl.querySelector('.material-symbols-outlined');
-        if (pulseIcon) {
-          if (showTypingIndicator) {
-            pulseIcon.classList.add('animate-pulse');
-          } else {
-            pulseIcon.classList.remove('animate-pulse');
+        // Clean up animations if thinking is finished
+        const brainIcon = thinkEl.querySelector('.cot-brain-icon');
+        if (brainIcon && !showTypingIndicator) {
+          gsap.killTweensOf(brainIcon);
+          gsap.killTweensOf(thinkEl);
+          gsap.to(brainIcon, { scale: 1, opacity: 1, duration: 0.3 });
+          gsap.to(thinkEl, { borderColor: 'rgba(60, 74, 70, 0.3)', duration: 0.3 });
+          
+          // Remove cursor
+          if (scrollContainer) {
+            scrollContainer.textContent = liveThinking.trim();
           }
         }
       } else if (thinkEl) {
@@ -975,6 +1134,24 @@
           isLoading: true,
           valueHtml: '',
           html: `<div class="diag-row diag-row--loading" data-section="evidence"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span><span class="diag-row__value text-on-surface-variant/40 flex items-center gap-1.5">${isEs ? 'Buscando manuales' : 'Searching manuals'}${dotsHtml}</span></div>`
+        });
+      } else {
+        const fallbackText = isEs 
+          ? 'Consulta no encontrada en los manuales de servicio. Use esta información como no verificada.' 
+          : 'Query not found in service manuals. Treat the provided information as unverified.';
+        const fallbackHtml = `
+          <span class="diag-row__value diag-row__value--warning">
+            <span class="material-symbols-outlined text-[14px]" style="font-size:14px;vertical-align:middle;">warning</span>
+            ${fallbackText}
+          </span>
+        `;
+        sections.push({
+          sectionId: 'evidence',
+          key: evidenceLabel + ':',
+          text: fallbackText,
+          isLoading: false,
+          valueHtml: fallbackHtml,
+          html: `<div class="diag-row" data-section="evidence"><span class="diag-row__label"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">menu_book</span>${evidenceLabel}:</span>${fallbackHtml}</div>`
         });
       }
 
@@ -1111,10 +1288,12 @@
                 const liveAvatar = msgEl.querySelector('.message__avatar');
                 if (liveAvatar) liveAvatar.innerHTML = '<span class="material-symbols-outlined">local_hospital</span>';
                 renderLiveCard();
+                transitionToStep('searching');
                 break;
               case 'rag_sources':
                 sources = data.sources || [];
                 renderLiveCard();
+                transitionToStep('reasoning');
                 break;
               case 'content_delta':
                 contentText += data.text || '';
@@ -1128,6 +1307,7 @@
                   evidenceUsed = data.evidence_used;
                 }
                 renderLiveCard(true, true);
+                transitionToStep('compliance');
                 break;
               case 'thinking_delta':
                 liveThinkingText += data.text || '';
@@ -1142,6 +1322,7 @@
               case 'error':
                 contentText += '\n\n' + (data.message || t('error_generic'));
                 renderLiveCard(false);
+                completeAllSteps(false);
                 break;
               case 'done':
                 if (data.finalDisposition) {
@@ -1152,6 +1333,7 @@
                   disclaimers.push(`SAFETY NOTE: ${finalSafetyNote}`);
                 }
                 renderLiveCard(false);
+                completeAllSteps(true);
                 break;
             }
             currentEventType = '';
@@ -1161,6 +1343,7 @@
     } catch (err) {
       contentText = t('error_generic') + '\n\n' + (err.message || '');
       renderLiveCard(false);
+      completeAllSteps(false);
     }
 
     updateAssistantMessage(msgEl, {
@@ -1590,8 +1773,7 @@
     chipsContainer.innerHTML = '';
 
     displayDocs.forEach((doc, idx) => {
-      // Clean up the name for display
-      let displayName = doc
+      let displayName = doc.split(/[\\/]/).pop()
         .replace(/^MT\s+/i, '')
         .replace(/^MT-+/i, '')
         .replace(/\.pdf$/i, '')

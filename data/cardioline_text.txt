@@ -1,0 +1,1867 @@
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+Service Manual 
+ 
+ar2100view 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 2/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+English 
+sm_ar2100view_new_cardiolinespa_03_eng1.doc – 16/06/2014 
+Cod. 36500136 
+ 
+ 
+All rights reserved © Cardioline SpA.  
+CARDIOLINE® is a registered trademark Cardioline SpA. 
+This  publication  may  be  reproduced,  in  whole  or  in  part,  in  any  form  or  
+manner without the prior written permission of:  
+Cardioline SpA 
+Via De Zinis, 6 38011 Cavareno (TN) Italia - Italy 
+The  information  contained  in  this  publication  is  subject  to  change  without  
+notice requirements. In case of non correspondence between user manual and 
+Device, refer to our sales representative. 
+0476 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 3/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+Index 
+1. Introduction 6 
+1.1 Information  and  recommendations  concerning  the  
+safety of use 6 
+Guidelines for Bluetooth transmission 8 
+2. Description of the device 9 
+3. Inputs and outputs 10 
+3.1 Connection to the patient cable port 10 
+3.2 USB Port 10 
+4. Testing the safety characteristics 12 
+4.1 Leakage currents test 12 
+5. Testing the main technical characteristic 14 
+5.1 Instruments required 14 
+5.2 Sensitivity test 14 
+5.3 Testing the ECG leads 14 
+5.4 Testing the paper speed 15 
+5.5 Frequency response test 16 
+6. Functional blocks 17 
+6.1 Mother board 17 
+Processor 17 
+Connection to mains 17 
+6.2 Battery charger 17 
+6.3 Internal circuit power supply 18 
+6.4 ECG acquisition 18 
+6.5 Motor control 18 
+6.6 Display control 19 
+6.7 Display assembly 19 
+6.8 Battery 19 
+6.9 Keyboard 20 
+6.10 Printer unit 20 
+6.11 Bluetooth module 20 
+6.12 Bridge Usb module 21 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 4/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+7. Troubleshooting 22 
+8. How to disassemble and reassemble the device 24 
+8.1 General precautions 24 
+8.2 Opening and closing the device (table T1) 24 
+8.3 Removing the mother board (table T2) 25 
+8.4 Removing the battery (table T1) 26 
+8.5 Removing the keyboard (table T2) 26 
+8.6 Removing the display (table T2) 27 
+8.7 Removing the motor assembly (table T2) 27 
+8.8 Removing the printer assembly (table T2) 28 
+8.9 Removing the mark and paper sensor (table T2) 28 
+8.10 Dismantling the paper feed (table T1) 29 
+8.11 Dismantling  and  replacing  the  keyboard  membrane  
+(table T1) 29
+ 
+9. Calibration and setting 30 
+9.1 General information 30 
+Self-test 30 
+9.1.1 Paper sensor calibration 31 
+9.1.2 Mark calibration 31 
+9.1.3 Speed calibration 31 
+9.1.4 Option code 32 
+9.1.5 Serial number 32 
+9.1.6 Print screen 32 
+9.2 Print head alignment 32 
+10. Periodic maintenance 33 
+10.1 Inspection frequency 33 
+11. Cleaning and disinfections 34 
+11.1 Cleaning the device, electrodes and patient cable 34 
+11.2 Clean thermal head 34 
+11.3 Cleaning the paper feed roller 34 
+11.4 Cleaning the mark and paper sensor 35 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 5/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+12. Spare parts list 36 
+13. Interconnections with medical systems 37 
+14. Technical characteristics 38 
+15. APPENDIX A 40 
+15.1 Procedures  for  manipulating  and  storing  components  
+(ESD) 40 
+16. APPENDIX B 41 
+16.1 Figures and illustrated tables 41 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 6/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+1. Introduction 
+ar2100view is  an  electrocardiograph  with  dual  power  supply,  (mains  and  
+rechargeable internal batteries), which in the basic configuration allows: 
+ recording   of   an   ECG   in   either   automatic,   manual   mode   and   pre-
+programmed; 
+ visualizing in real time the ECG signal on a graphic display in print format: 3 
+- 3+1 - 3+3 -6 - 6+6 - 12 channels; 
+ printing  the  ECG  on  210  mm  in  different  format  paper  using  a  high-
+resolution thermal printer; 
+ sorting  of  the  tests  according  to  clock,  date  and  alphanumeric  keyboard to 
+manage user and patient data; 
+ Set up to 4 different profiles can use to adapt the operation of the various 
+requirements; 
+ 
+In just a few minutes your ar2100view can be equipped with: 
+ Memory option: storage of up to 200 full ECG exams, with no need to print 
+out the ECG; 
+ ECG   measurement   option:   automatic   ECG   parameter   measurement   
+program; 
+ ECG analysis program: automatic ECG interpretation program; 
+ PC  archive  option:  archival  storage  of  the  ECG  in  a  personal  computer  
+running cubeecg software; 
+ PC  ECG  option:  real  time  display  of  the  12  ECG  leads  on  a  personal  
+computer  screen  to  allow  management  of  patient  medical  records  and  
+archiving of ECG’s in digital format thanks to the cubeecg software. 
+ 
+For further information contact directly: 
+CARDIOLINE® 
+Via Fratelli Bronzetti, 8 – 20129 Milano (MI) ITALY 
+e-mail: service@cardioline.it 
+tel. +39 02 94750484 fax: +39 02 94750472 
+1.1 Information         and         recommendations         
+concerning the safety of use 
+ The  electrical  system  used  by  the  device  must  be  in  accordance  with  the  
+standard in force. 
+ Always use the equipment according to the instructions in this manual. 
+ The  device  is  equipped  with  a  set  of  standard  accessories.  For  reasons  of  
+safety,   reliability   and   conformity   with   the   Medical   Devices   Directive   
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 7/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+93/42/EEC,  use  only  original  accessories  or  accessories  approved  by  the  
+manufacturer. 
+ The device is equipped with a special long-life thermal head writing system, 
+which  allows  maximum  writing  precision.  To  avoid  frequent  and  costly  
+replacements and repairs, always use the original paper or paper approved 
+by  the  manufacturer.  The  manufacturer  will  not  accept  liability  for  any  
+damage  to  the  device  or  any  other  adverse  effect  caused  by  the  use  of  
+unsuitable paper. 
+ Do not subject the device to impact or excessive vibrations. 
+ Do   not   allow   liquids   to   penetrate   inside   the   device.   If   this   should   
+accidentally  occur,  have  the  device  tested  by  an  Authorised  Assistance  
+Centre to verify its functional efficiency, before using it again. 
+ Make  sure  that  the  value  of  the  supply  voltage  corresponds  to  that  
+indicated on the data plate of the device. 
+ If  you  are  using  the  device  in  connection  with  others,  ensure  that:  all  
+connections  are  made  by  skilled  persons;  all  connections  comply  with  
+safety   regulations;   all   other   devices   connected   respond   likewise   to   
+regulations.  Non-compliance  with  regulations  can  cause  physical  harm  to  
+the patient connected and to the person operating the device. Should it be 
+difficult  to  obtain  the  necessary  information  for  assessing  the  risk  of  the  
+individual  connections,  apply  directly  to  the  manufacturers  concerned  or  
+avoid making the connections. 
+ In  the  event  of  other  equipment  being  connected  directly  or  indirectly  to  
+the patient, check for the possible risks caused by the sum of the leakage 
+currents on the body of the patient. 
+ The device is protected against defibrillation discharges in accordance with 
+IEC  standard;  to  ensure  that  the  signal  is  restored,  use  only  original  
+electrodes or electrodes responding to IEC and AAMI standards. 
+ If   an   electrosurgical   scalpel   is   in   use,   the   patient   cable   should   be   
+disconnected from the device. 
+ At  all  events,  when  defibrillators  or  high-frequency  surgical  devices  are  
+being  used  at  the  same  time,  it  is  essential  to  take  the  greatest  care.  If  
+there  is  any  doubt  when  such  devices  are  in  use,  disconnect  the  patient  
+from the electrocardiograph temporarily. 
+ The  device  recognises  the  impulses  generated  by  a  pacemaker  and  does  
+not  interfere  with  its  operation,  as  prescribed  by  standards  in  use  at  the  
+time of drafting this manual. 
+ Avoid exposing the equipment to extreme temperatures, excessive dust or 
+dirt, and very salty or damp environments; observe the ambient conditions 
+described in detail under the "Technical specifications” heading. 
+ Periodically  check  the  efficiency  of  all  accessories  and  of  the  device  itself. 
+Use the “test incorporated” function for a first verification of the efficiency. 
+Contact the Authorised Assistance Centre whenever the device seems to be 
+operating irregularly. 
+ To  prolong  the  life  of  your  device,  have  it  checked  periodically  by  an  
+Authorised Assistance Centre. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 8/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ Warning:   The   electrocardiograph   cannot   be   used   for   intracardiac 
+applications. 
+ Warning:  It  is  therefore  necessary,  before  activating  the  equipment,  to  
+make  sure  of  the  connection  to  ground  (normally  secured  by  the  power  
+supply cable). If grounding of the main electrical service is not certain, do 
+not connect the device and use it powered only by the rechargeable internal 
+battery. 
+ Warning: do not use the device in the presence of anaesthetics or volatile 
+gases! 
+ Warning:  devices  for  medical  applications  must  be  used  only  by  persons  
+who  by  virtue  of  training  or  practical  experience  are  able  to  ensure  
+maximum  safety  and  effectiveness  in  operation.  Operators  must  in  any  
+event  read  this  manual  carefully  and  familiarise  themselves  with  the  
+instrument before using it on a patient. 
+ Warning:  the  indications  obtained  using  automatic  interpreting  programs  
+or other diagnostic aids must be reviewed and countersigned by a qualified 
+medical person! 
+ The  manufacturer  will  acknowledge  liability  for  the  safety,  reliability  and  
+functional efficiency of the device only if: 
+− modifications  and  repairs  are  performed  by  the  manufacturer  or  by  an  
+Authorised Assistance Centre; 
+− the   AC   mains   power   supply   of   the   building   responds   to   current   
+regulations; 
+− the device is operated according to user instructions; 
+− any accessories in use are those approved by the manufacturer. 
+Guidelines for Bluetooth transmission 
+The  device  meets  the  requirements  of  the  R&TTE  Directive  about  radio  
+equipment. 
+However,  in  order  to  protect  the  device  from  other  instruments  which  don’t  
+comply  with  these  regulations,  we  recommend  placing  the  device  as  far  as  
+possible from other devices that use the Bluetooth transmission. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 9/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+2. Description of the device 
+The device consists of the following basic elements: 
+Mother board 
+This  is  a  “Fine  line”  multilayer  printed  circuit  board  for  mounting  SMD  
+components.  
+It hosts most of the electronic circuits of the device. 
+Battery 
+Battery Pack made of 10 cells NiMH 12V, 2100mA. 
+Display 
+Display assembly is made of: frame, colour LCD TFT, 480x272 pixel, effective 
+area 95 x 54 mm, backlit    with 9 led (4,3”). 
+Keyboard 
+The keyboard consists of 47 functional keys plus a Led of main supply. 
+Printer unit 
+This consists of the thermal printer head support and the mechanical elements 
+required to position it correctly. 
+Bluetooth module (RS232) 
+The function of the Bt module is to transmit and receive data from an external 
+PC.  
+Motor assembly 
+The DC motor with gears for paper speed. Also included strobo disk for speed 
+feedback. 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 10/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+3. Inputs and outputs 
+Direct  connections  from  the  ar2100view  to  external  equipment  may  only  be  
+made using the BT, not by cable. 
+3.1 Connection to the patient cable port  
+ 
+8
+4
+1
+2
+3
+6
+7
+5
+159
+10
+11
+12
+1314
+ 
+ 
+Image  from connection side 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+3.2  USB Port 
+ar2100view is  equipped  with  a  mini  USB  plug  with  the  function  to  update  the  
+firmware. USB     port     is     located     in     the     battery     compartment,  
+refer  to  the  manual  "Cardioline  Loader"  for  detailed  instructions  on  updating  
+the firmware of the device.  
+Pin 1 = IN C2 (electrode C2) 
+Pin 2 =   IN C3   (electrode C3) 
+Pin 3 =   IN C4   (electrode C4) 
+Pin 4 =   IN C5   (electrode C5) 
+Pin 5 =   IN C6   (electrode C6) 
+Pin 6 =   AGND   (analog ground) 
+Pin 7 =   NC  (not connected) 
+Pin 8 =   DGND   (digital ground) 
+Pin 9 =   IN R (electrode R) 
+Pin 10   =   IN  L (electrode L) 
+Pin 11   =   IN F (electrode F) 
+Pin 12   =   IN C1   (electrode C1) 
+Pin 13   =   NC  (not connected) 
+Pin 14   =   IN N (electrode N) 
+Pin 15 = NC  (not connected) 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 11/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 12/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+4. Testing the safety characteristics 
+The safety regulations envisage two important tests: 
+ The leakage currents test measures the value of the currents lost in relation 
+to the safety of the patient and the operator. 
+Warning: All   safety   tests   must   be   performed   according   to   standards   
+EN.60601-1,  EN  60601-2-25  unless  otherwise  specified  in  the  local  safety  
+regulations. 
+4.1 Leakage currents test 
+Warning: This  test  must  be  performed  every  time  the  device  has  been  
+opened for inspection and/or repair, and in any event every two years, unless 
+otherwise specified by the local safety regulations.  
+Connect the electrocardiograph to  the  battery  charger,  and  then  connect  this  
+assembly to the measuring instrument according to the instrument’s manual, 
+recalling that: 
+1) The leakage current to the casing is measuring between the mains supply 
+circuits and a metal sheet no greater than 20 x 10 cm pressed against the 
+casing of the device.  
+2) The leakage current in the patient is measured between the mains and the 
+applied part. For connection to the applied part use the patient lead itself. 
+3) The  leakage  current  in  the  patient  with  mains  voltage  directly  on  the  
+applied  part  (first  failure  condition)  is  measured  between  the  meta  sheet  
+connected to the device and the applied part. 
+4) The  auxiliary  current  in  the  patient is  measured  singly  on  each  electrode 
+(excluding  the  reference  electrode)  compared  to  all  the  other  electrodes  
+connected together. 
+ 
+Note: Make the measurements following the indications in the instrument user 
+manual, and check that the leakage current values measured are less than or 
+equal to those listed in table 4. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 13/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+Table 4. 
+Admissible permanent values for leakage and auxiliary currents in the patient 
+in mA (milliamperes). 
+ 
+Current path
+ 
+CF type 
+ N.C.  
+Leakage current to earth 0.5 Leakage current to earth 
+Leakage current in case 0.1 Leakage current in case 
+Leakage  current  in  the  patient  d.c  – 
+a.c. 
+0.01 Leakage    current    in    the    
+patient d.c – a.c. 
+Leakage current in the patient 
+(mains voltage in applied part) 
+----- Leakage    current    in    the    
+patient 
+(mains   voltage   in   applied   
+part) 
+Auxiliary current in patient d.c – a.c. 0.01 Auxiliary  current  in  patient  
+d.c – a.c. 
+N.C.     = Normal condition 
+S.F.C.  = First failure condition 
+ N.C.     = Normal condition 
+S.F.C. =     First     failure     
+condition 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 14/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+5. Testing the main technical characteristic 
+Warning: All    tests must be performed in compliance with the provisions of the 
+related  general,  detailed  and  performance  safety  regulations  listed  in  the  
+technical characteristics section 
+5.1 Instruments required 
+a) sample mV generator with the following characteristics: 
+b) low frequency sine wave generator; 
+c) ECG simulator. 
+5.2 Sensitivity test 
+ set the device up to record 3 channels on leads V1 to V3 with sensitivity of 
+20 mm/mV; 
+ connect the patient cable to the device; 
+ connect  terminals  C1,  C2  and  C3    of  the  patient  cable  connected  to  the  
+device to the positive pin of instrument 5.1.a); 
+ connect all the other cable terminals to the negative pin of instrument 5.1 ; 
+ record the signal for a few seconds; 
+ check  that  the  amplitude  of  the  recorded  signal  is  20mm.  +/-  5%  on  all  
+channels. 
+5.3 Testing the ECG leads 
+ switch the device on; 
+ connect the patient cable to the device; 
+ connect  the  red  termination  of  the  patient  cable  to  the  positive  pin  of  the  
+instrument specified in point 5.a.a and the remaining wires to the negative 
+pin. 
+ start  recording  and  check  that  the  amplitude  in  mm  of  the  signal,  and  its  
+polarity (positive or negative) comply with the values indicated in table 5.3. 
+ repeat   the   measurements   in   sequence   with   the   remaining   active   
+terminations G - V - C1 - C2 - C3 - C4 - C5 - C6 of the patient cable using 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 15/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+the method described in c), and check that the values correspond to those 
+indicated in table 5.3. 
+ 
+PATIENT CABLE AND LEADS TEST 
+CONNECTIONS FOR THE TEST 
+INSTRUMENT PATIENT CABLE CONNECTIONS 
+Connector Patient cable terminations N. 1 Termination to positive apart from black 
++  
+← 
+N. 4 Terminations to negative with 5 wire cable 
+-  
+↑ → ↓ ° ± ′′ ≥ × ∝ 
+N. 9 Terminations to negative with 10 wire cable 
+Square wave signal from: Electrocardiograph: amplification 1mV/10mm 
+1 Hz ± 1%  1 mVpp ± 3%   
+ signal recorded in mm ± 5% 
+TABLE OF VALUES 
+Term. LEADS AND VALUE OF IMPULSE 
+to I° II° III° aVR aVL aVF V1 V2 V3 V4 V5 V6 
+positi
+ 
+mm mm mm mm mm mm mm mm mm mm mm mm 
+R - 10 - 10 0 + 10 - 5 - 5 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 
+G + 10 0 - 10 - 5 + 10 - 5 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 
+V 0 + 10 + 10 - 5 - 5 + 10 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 - 3,3 
+C1 0 0 0 0 0 0 + 10 0 0 0 0 0 
+C2 0 0 0 0 0 0 0 + 10 0 0 0 0 
+C3 0 0 0 0 0 0 0 0 + 10 0 0 0 
+C4 0 0 0 0 0 0 0 0 0 + 10 0 0 
+C5 0 0 0 0 0 0 0 0 0 0 + 10 0 
+C6 0 0 0 0 0 0 0 0 0 0 0 + 10 
+Table 5.3 
+5.4 Testing the paper speed 
+ switch on the device and connect the patient cable; 
+ connect terminals C1 C2 and C3  of the patient cable to the positive pin of 
+instrument 5.1a); 
+ connect  all  the  other  cable  terminals  to  the  negative  pin  of  instrument  
+5.1a); 
+ using  the  instrument  with  a  square  wave  of    1  Hz  and  an  amplitude  of  1  
+mVpp; 
+ record the signal on leads V1, V2, V3; 
+ measure the length of the wave cycle recorded on the paper. 
+The results should be as follows: 
+Period = 50 mm +/- 5% for a feed rate of 50 mm/s; 
+Period = 25 mm +/- 5% for a feed rate of 25 mm/s; 
+Period =   5 mm +/-10% for a feed rate of 5 mm/s; 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 16/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+5.5 Frequency response test 
+ switch on the device and connect the patient cable; 
+ connect  terminals  C1,  C2,  C3  of  the  patient  cable  to  the  positive  pin  of  
+instrument 5.1.a); 
+ connect  all  the  other  cable  terminals  to  the  negative  pin  of  instrument  
+5.1a); 
+ set the sine wave generator to 10Hz with an amplitude of c. 1mVpp; 
+ select leads V1, V2, V3 and a sensitivity of 10 mm/mV.; 
+ make a recording and adjust the amplitude of the generator so as to obtain 
+a 10 mm excursion of the signal recorded; 
+ vary   the   generator   frequency   from   0.5Hz   to   100Hz   with   constant 
+amplitude; 
+ check that the frequency response is in accordance with the values in table 
+5.5. 
+ 
+Amplitude of 
+signal in 
+mVpv 
+Unfiltered sinusoidal 
+input signal in Hz 
+Relative tolerance 
+of signal 
+10 Hz  –  10 mm 
+1  From 0,67 to 40 ± 10% 
+1  From 40 to 100 + 10% - 30% 
+0,5  From 100 to 150 + 10% - 30% 
+Table 5.5 
+ 
+Note: The 0.5 Hz pitch linear phase anti-drift filter is always on and cannot be 
+switched off. 
+The   50   or   60   Hz   filter   eliminates   modified   notch   digital   type   mains   
+disturbances in the linear phase, with a frequency response of 32 Hz - 3dB.  
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 17/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+6. Functional blocks 
+6.1 Mother board 
+The motherboard is based on the following principal components: 
+Processor 
+ 32 bit Fujitsu MB91101 RISC microprocessor with 12 MHz clock 
+ The apparatus is supplied moreover of N°1 static memory ram from 4Mb 
+ 2 x 8 Mb flash memories including the following software: 
+o boot code; 
+o operating system software; 
+o applications software; 
+o calibrations data; 
+o ECG archive. 
+ Execution of static ram self test. 
+Connection to mains  
+Power supply AC/DC type switching, model XPOWER ECM60US18 - 60W 
+ Input Voltage : 90-264Vac 
+ Input frequency: 47-63Hz 
+6.2 Battery charger  
+The battery charger section consists of the following parts: 
+ The  battery  (12V  2100mAh  NIMH)  is  recharge  from  a  circuit  to  constant  
+current  that  is  under  responsibility  of  Q303 and  it  develops  approximately  
+1/10 of the nominal current of the battery (150mA). 
+ Mains filter against electromagnetic disturbances. 
+ Rectification, voltage stabilisation and current limitation circuits. 
+Testing the battery charger circuit 
+ If the mains on led does not light up, check using the following procedure; 
+ Disconnect the mains cable; 
+ Check the externally accessible mains fuses 
+ Check the internal fuse 5A delay SMD 
+ Disconnect the battery from the device as indicated in chapter 8.4; 
+ Connect an amperometer to the free terminal caps; 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 18/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ Connect the mains cable: the reading should indicate a current of 150 mA 
+± 15; 
+ If  the  reading  is  outside  the  range  of  values  indicated,  replace  the  
+motherboard. 
+6.3 Internal circuit power supply 
+This consists of the following power supplies: 
+ +5 V generated by a switching type voltage regulator; 
+ VI – VL  to supply the patient input analogue circuits on the hybrid circuit  
+(insulated part);  
+ + 3.3 V generated by a linear regulator to supply the control logic; 
+ + 3 V reference voltage for the A/D converter; 
+ VTPH  voltage  obtained  from  the  battery  to  supply  the  thermal  head.  This  
+voltage  is  limited  to  a  current  of  5A  and  stabilised  in  voltage  at  +25  Vdc  
+enabled only when printing. 
+Testing internal circuit power supplies 
+ Check fuse F1 (T 5A); 
+ If no power is supplied to the internal circuits, replace the motherboard. 
+6.4 ECG acquisition 
+This consists of the following parts: 
+ Patient input connector; 
+ Protection against defibrillator discharges; 
+ Signal polarisation circuit; 
+ Hybrid circuit for amplification, filter and clamp. 
+6.5 Motor control 
+This consists of the following parts: 
+ Stroboscopic sensor control; 
+ Phase comparator between reference frequency and motor feedback; 
+ Current amplifier for motor power supply. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 19/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+6.6 Display control 
+This consists of the following parts: 
+ Display controller S1D13704 EPSON;  
+ Buffer adapter level from 3,3V to 5V; 
+ Step up converter for LCD power supply. 
+6.7 Display assembly 
+This consists of the following parts: 
+ Graphic LCD TFT colour 480x272 pixel, effective area 95 x 54 mm, backlit    9 
+led (4,3”) 
+Testing the display  
+ Execution of display self-test. 
+6.8 Battery 
+NiMH battery 12V-2100 mAh 
+ The battery is protected against short circuits by a Polyswitch 3,5A.  
+ Complete recharging requires at least  10 hours or longer. The battery can 
+be  partially  recharged,  in  this  case,  to  prolong  the  life  of  the  battery  it  
+should be fully discharged and recharged every 2 months. 
+ Replace the battery with one of equivalent type, voltage and capacity. 
+Attention:  In  order  to  ensure  a  correct  equipment  operation  and  safety,  
+replace battery with original Cardioline SpA battery pack. 
+Warning: The battery must only be removed if the device is off and the mains 
+supply cable disconnected. Do not dispose of a spent battery as ordinary 
+refuse or litter. 
+Note: The configuration parameters and any stored ECGs are not lost when 
+the battery is changed. 
+Note: Update the system date and time after replacing the battery. 
+Battery check 
+Proceed as follows to check the efficiency of the battery: 
+ Leave the battery on charge for at least 10 hours; 
+ Disconnect the mains cable; 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 20/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ Activate  printing  of  an  ECG  in  manual  mode  on  6  channels  at  5  mm/s:  if  
+the  device  shows  the  battery  is  flat  within  the  first  5  minutes  the  battery  
+should be replaced. 
+6.9 Keyboard  
+The capacitive keyboard consists of: 
+ N° 17 function keys; 
+ N° 30 alphanumeric keys; 
+ N° 1 LED for mains line indication; 
+ CPU connection through bi-directional synchronous serial port. 
+Testing the keyboard circuits 
+ Execution of keyboard self-test; 
+6.10 Printer unit 
+This consists of the thermal printer head ROHM model KF2008-GK11B and the 
+mechanical elements required to position it correctly: 
+ Effective printing width: 216mm 
+ Dot pitch: 0.125mm 
+ Total dot number: 1728, 8 dots per mm; 
+ support; 
+ paper  feed  unit  consisting  of  1  direct  current  reduction  gears,  equipped  
+with stroboscopic speed control; 
+ black mark (page) detection sensor. 
+Testing the print unit 
+ Execution of printer self-test. 
+6.11 Bluetooth module 
+The  Bt    Mitsumi  WML-C40 module  has  the  function  of  transmitting  and  
+receiving data from an external PC. Through the BT module it can perform the 
+following functions: 
+ Transmission ECG off line (software Cardioline cubeecg)* 
+ Transmission ECG real time (software Cardioline cubeecg)* 
+ 
+* Refer to specific manual for more information. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 21/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+6.12 Bridge Usb module 
+The channel Usb is implemented using the integrated Silicon Labs CP2102, the 
+communication driver usb-serial is downloadable from:
+ 
+http://www.silabs.com or 
+http://www.silabs.com/Support%20Documents/Software/CP210x_VCP_Win_X
+P_S2K3_Vista_7.exe 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 22/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+7. Troubleshooting 
+Defect Possible 
+cause/symptom 
+Remedy 
+The device does not 
+switch on in any 
+mode. 
+• Motherboard / 
+keyboard 
+Holding down the ON/OFF key, 
+measure 12Vdc on J54 
+(keyboard connector) pin 3; if 
+absent replace the keyboard 
+card, if not, replace the 
+motherboard. 
+The device does not 
+switch on when in 
+mains mode. 
+• Mains LED indicator 
+off. 
+Check mains fuses, if OK 
+replace motherboard. 
+The device does not 
+switch on when in 
+battery mode. 
+ 
+ • Check T5A fuse on 
+motherboard. 
+• Check efficiency of battery 
+and replace if necessary. 
+The battery does 
+not charge. 
+• The device has not 
+been charged for 
+long enough. 
+• Mains LED indicator 
+off. 
+ 
+• Defective battery. 
+ 
+• Leave the device charging 
+for at least 18 hours. 
+• Check mains fuses, if OK 
+replace motherboard. 
+• Check efficiency of battery 
+and replace if necessary. 
+• Check T5A fuse on 
+motherboard. 
+Keyboard keys not 
+working. 
+• The key pressed not 
+enabled for the 
+specific function. 
+• Execute keyboard self test 
+and if it fails replace 
+keyboard card. 
+The paper feeds 
+through without 
+printing. 
+ 
+• Paper not suitable, 
+without black page 
+recognition mark. 
+ 
+• Check that original paper is 
+being used. 
+• Check the paper has been 
+inserted correctly. 
+• Check that the 25 Vdc VTPH 
+power supply to the thermal 
+print head is present when 
+printing is active, if not, 
+replace the mother board. 
+• Check signals on test point 
+table T5 are present. If 
+good, replace thermal head 
+assembl
+y, otherwise replace 
+motherboard. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 23/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+Defect Possible 
+cause/symptom 
+Remedy 
+Anomalous printout.  • Clean thermal head. 
+• Execute printer self-test, 
+replace thermal head unit if 
+some dots are missing. 
+Does not print 
+automatically or 
+does not paginate 
+the trace correctly. 
+• Paper not suitable, 
+without black page 
+recognition mark. 
+• Clean mark sensor. 
+• Perform mark sensor 
+calibration. 
+• Replace print unit. 
+Paper feed 
+defective, or paper 
+finished message 
+with paper present. 
+ • Check paper guides are not 
+damaged. 
+• Clean rubber roller. 
+• Replace print unit. 
+EC signal disturbed 
+or anomalous. 
+• Error message on 
+display, on printout. 
+• See user manual. 
+The device stops 
+during use. 
+• No functions 
+operational, no 
+commands accepted. 
+• Press reset button on right 
+side of device.  
+Blank display. 
+ 
+• Backlit lamp blown or 
+step up converter 
+failed 
+• Check for brightness 
+regulation. 
+• Replace display assembly. 
+No data on display. 
+ 
+ • Check for contrast 
+regulation. 
+• Perform display self test.  
+• Verify proper flat connection 
+between mother board and 
+display assembly. 
+• Verify on display connector 
+J48 presence of LCD data 
+signal (level from 0 trough 5 
+V), if present replace 
+display assembly otherwise 
+replace mother board. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 24/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+8. How to disassemble and reassemble the 
+device 
+8.1 General precautions 
+Disconnect the mains cable before opening the unit. 
+See chapter 15 (procedures for handling ESD components). 
+To reassemble the device, perform the operations described below in reverse 
+order,   ensuring   that   all   subassemblies   and   connections   are   performed   
+correctly.  
+8.2 Opening and closing the device (table T1) 
+ Remove the 5 fixing screws from the mobile base; 
+ Lift the mobile base of the device; 
+ Remove the lower mobile part; 
+To reassemble the equipment proceed in reverse order. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 25/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+8.3 Removing the mother board (table T2) 
+ Proceed following the instructions in chapter 8.2; 
+ Remove 2 screws (T2); 
+ Lift the patient connector side of the board and disconnect the following: 
+• keyboard flat; 
+• thermal head flat; 
+• motor flat; 
+• mark sensor card flat; 
+• display connector flat; 
+• inverter flat. 
+To reassemble the motherboard proceed in reverse order. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 26/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+8.4 Removing the battery (table T1) 
+Proceed as follows: 
+ lay  the  equipment  on  a  soft  work  surface  with  the  bottom  of  the  casing 
+facing upwards; 
+ remove  the  door  of  the  battery  compartment  after  having  slackened  its  
+retaining screw (1); 
+ disconnect and remove the set of batteries (2); 
+To reassembly, proceed in inverse order. 
+ 
+ 
+ 
+Warning: Respect the correct polarity of the battery connection as specified in 
+Table T1. 
+8.5 Removing the keyboard (table T2) 
+ Proceed as described in chapter 8.3; 
+ Remove 5 screws (T2); replace the keyboard card. 
+To reassembly, proceed in inverse order. 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 27/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+8.6 Removing the display (table T2) 
+ Proceed following the instructions in chapter 8.2; 
+ Remove the 5 screws attaching the display to the housing (T2); 
+ Remove display. 
+To reassembly, proceed in inverse order. 
+ 
+8.7 Removing the motor assembly (table T2) 
+ Proceed as described in chapter 8.3; 
+ Remove 2 screws (T2) and remove the motor assembly; 
+To reassembly, proceed in inverse order. 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 28/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+8.8 Removing the printer assembly (table T2) 
+Proceed as follows: 
+ proceed  as  in  chapter  8.3  for  opening  the  equipment  and  removing  the  
+mother board from the equipment; 
+ remove the  2  retaining  screws  of  the  printer  assembly,  see  table  T2,  
+remove it from its seat, taking care not to damage the dots of the thermal 
+head with hard objects; 
+ proceed  in  inverse  order  to  fit  the  printer  assembly,  paying  particular  
+attention  to  the  positioning  of  the  mechanical  part  with  screws,  washers,  
+etc.; if the printer assembly is equipped with thermal print head regulation 
+see table T4. 
+ to obtain long life of the thermal head, using exclusively the heat-sensitive 
+paper  recommended  by  the  manufacturer,  packs  with  height  120  mm  is  
+advised. The order code is marked on the bottom edge of the paper; 
+ the  thermal  head  is  extremely  sensitive  to  electrostatic  potentials; it  is  
+recommended always to follow the work procedures described in appendix 
+A. 
+ 
+8.9 Removing  the  mark  and  paper  sensor  (table  
+T2) 
+Proceed as follows: 
+ proceed  as  in  chapter  8.3  for  opening  the  equipment  and  removing  the  
+mother board; 
+ to  remove  the  sensor  board,  force  it  upwards  using  a  suitable  tool.  It  is  
+glued into its compartment inside the upper casing, see table T2; 
+ to  replace  the  board  it  is  necessary  to  clean  the  area  in  which  it  is  fitted,  
+position it correctly in its compartment, with the output of the flat towards 
+the paper compartment and stick it down with instant glue; 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 29/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ to close the equipment perform the operations in inverse order; 
+ the replacement of the sensor card requires its calibration, see chapter 9. 
+8.10 Dismantling the paper feed (table T1) 
+The  paper  compartment  door  system  is  a  mechanical  device,  inserted  in  the  
+casing,  accessible  from  the  outside,  driven  by  the  motor  of  the  equipment,  
+which transports the heat-sensitive paper. 
+It is located above the paper compartment and covers it completely.  
+To remove this part, proceed as follows: 
+ Insert  a  tool  in  the  special  hollow  in  the  left-hand  wall  of  the  equipment  
+where  the  paper  comes  out  and  exert  pressure  upwards  so  as  to  release  
+the paper compartment door. 
+ This  assembly  must  be  disassembled  before  inserting  a  roll  or  pack  of  
+paper, when cleaning the roller and always before opening the equipment. 
+ To reassembly it, slip it into place with the rubber roller towards the inside 
+of  the  equipment  and  holding  it  up  on  the  other  side.  As  soon  as  it  is  
+inserted, press gently down, on the raised side, so as to snap it shut. 
+Note:  If  the  roller  is  not  clean  and  the  paper  compartment  door  is  badly  
+inserted or fastened, the paper transport is faulty and the equipment functions 
+incorrectly. 
+8.11 Dismantling   and   replacing   the   keyboard   
+membrane (table T1) 
+The  keyboard  plate  is  an  elastic  membrane  fitted  on  top  of  the  keyboard  to  
+allow its control buttons to be pressed. 
+This self-adhesive plate is stuck onto the top of the equipment. 
+To  replace  it  when  worn,  lift  one  corner  using  a  fine  blade  and  pull  it  off  the  
+casing. 
+If any adhesive is left on the casing, you must remove it by rubbing with your 
+fingertips. 
+To fit a new plate, centre it with the corners in the space provided and press 
+gently over the whole surface. 
+Note:  A  broken  or  cracked  keyboard  membrane  compromises  the  safety  of  
+the device. 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 30/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+9. Calibration and setting 
+9.1 General information 
+This device has a system to automatically set the paper feed speed and mark 
+detection sensor. 
+The device does not require further setting. 
+The  calibration  system  may  be  accessed  from  the  service  menu  as  described  
+below. 
+Self-test 
+The device is pre-set to execute self-testing of the main functions: the access 
+sequences for the various menus are guided on the display. 
+Two  types  of  self-testing  may  be  performed:  USER  (1)  and  SERVICE  (2),  
+according to the tests to be executed. 
+User  
+To enter the self-testing menu, switch on the device, press the MENU key and 
+select and confirm the TOOLS, SELF-TEST, USER(1) submenu using the arrow 
+key (DOWN). The following tests are available in the operator section: 
+ Display:  pixel  scan.  The  presence  of  blank  areas  signifies  faulty  operation  
+of the display. 
+ Keyboard:  the  position  of  the  single  keys  is  simulated  in  the  display.  
+Pressing  a  given  key,  the  corresponding  area  of  the  display  is  highlighted 
+in  reverse.  A  lack  of  response  in  any  one  area  indicates  that  the  relative  
+key is faulty. 
+ Printer:  the  system  prints  two  triangular  waves,  the  character  set  in  the  
+memory,  and  signals  with  different  speeds  and  sensitivities.  Irregularities  
+in  the  printing  system  are  indicated  by  the  presence  of  non-continuous 
+lines (burnt dots). 
+ Memory: a non-destructive test is performed on the memories (the data in 
+the memory are not cancelled), and a report of the following type is then 
+printed (all tests OK). 
+  <<< ar2100view MEMORY TEST >>> 
+  Application : CRC OK 
+  Ram Memory : OK 
+ Info: the  following  items  of  information  are  printed:  model  identification,  
+serial  number  of  the  device,  details  of  software  installed,  version  and  
+language code, reference of any options installed. 
+Service 
+To enter the self-testing menu, switch on the device, press the MENU key and 
+select  and  confirm  the  TOOLS,  SELF-TEST,  SERVICE(2)  submenu  using  the  
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 31/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+arrow  key  (DOWN).  When  the  access  code  is  requested,  press  the  following  
+keys: FILTER – AMPLITUDES – SPEED – AUTO and confirm. 
+The following tests are available in the service section: 
+9.1.1 Paper sensor calibration 
+To confirm under menu Paper Sensor the Calibration (1), position the mark at 
+a distance from the sensor (visible near the exit from the device), and confirm 
+“next”. 
+The  microprocessor  automatically  reads  the  sensor  output  voltages,  voltage  
+with  white  paper  and  black  mark,  and  then  sets  the  digital  trimmer  that  
+regulates the photodiode current to the optimal settings and then stores them. 
+The  paper  calibration  voltages  are  shown  on  the  display,  as  is  the  numerical  
+position of the digital potentiometer from 0 to 31 positions (wiper pos.).   
+9.1.2 Mark calibration 
+Confirm the submenu MARK CALIBRATION (1), position the mark at a distance 
+from the sensor (visible near the exit from the device), and confirm “enter”  
+The  microprocessor  automatically  reads  the  sensor  output  voltages,  voltage  
+with  white  paper  and  black  mark,  and  then  sets  the  digital  trimmer  that  
+regulates the photodiode current to the optimal settings and then stores them. 
+The  mark  calibration  voltages  are  shown  on  the  display,  as  is  the  numerical  
+position of the digital potentiometer. 
+9.1.3 Speed calibration 
+Testing and setting 
+Select and firm the SPEED CAL. (2) submenus, and the speed to calibrate 
+The  following  messages  then  appear  on  the  display:    Output  PWM0  Output  – 
+Freq = xxxx Hz with the possibility of selecting from:  test – change – exit. 
+Confirming  the  “test”  command  enables  the  paper  feed  and  the  print  unit  
+emits a 1 impulse per second signal, if the speed has to be calibrated, select 
+ and increase or decrease the frequency to set the paper feed speed 
+entered.  When  the  speed  has  been  set  correctly,  select  and  confirm  with  
+“exit”. 
+The  permitted  tolerance  values  for  the  various  paper  feed  speeds  are  as  
+follows: 
+ 5 mm/s +/- 10% 
+10 mm/s +/- 10% 
+12,5 mm/s +/- 10% 
+25 mm/s +/- 5% 
+50 mm/s +/- 5% 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 32/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+9.1.4 Option code 
+It  allows the update of the language and options.  
+It will involve the loss of all the data which memorized in the instrument. The 
+introduction  of  a  number  of  40  figures,  released  from  Cardioline  Spa,  will  
+qualify  the  new  language  and  options.    Please  refers  to  user  manual  for  
+instructions on how to active a new option code. 
+9.1.5 Serial number 
+Only for factory use. 
+9.1.6 Print screen 
+Only for factory use. 
+9.2 Print head alignment 
+In  case  of  print  head  adjustment  remove  mother  board  as  per  chapter  8.3 
+then follow instructions provided in table T4, repeat adjustment until the best 
+result is obtained. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 33/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+10. Periodic maintenance 
+The ar2100view electrocardiograph has been designed to assure a high degree 
+of reliability during the life cycle of the product.  
+Any  incorrect  conditions  of  use  or  anomalous  operation  will  be  signalled  by  
+messages on paper and on the display. 
+10.1 Inspection frequency 
+To  guarantee  a  long  and  safe  duration,  the  instrument  and  its  accessories  
+must be periodically inspected and checked. 
+Table  10  indicates  the  type  and  frequency  of  controls  required,  based  on  
+normal use of the electrocardiograph (about 4000 ECG recordings per year). 
+Warning: Check immediately if there are events not referring to normal use. 
+General and safety tests 
+Type of operation Frequency 
+-  months 
+- full discharging and charging of battery 2 
+- check and clean printer head 3 
+- visual inspection of the device, patient cable and accessories 6 
+- execution of self-test 6 
+- check and clean paper roller 12 
+- check paper speed 12 
+- check keys and keyboard 12 
+- clean paper compartment and mark presence sensor 12 
+- check patient cables and electrodes 12 
+- check whole amplification chain (sensitivity test) 12 
+- replace battery 12 
+- check calibrations 12 
+- check leakage currents 24 
+Table 10 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 34/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+11.  Cleaning and disinfections 
+11.1 Cleaning  the  device,  electrodes  and  patient  
+cable 
+- Device: use a cloth dampened with water or ethyl alcohol. Do not use other 
+chemical products or household detergents. 
+- Electrodes: remove  the  electrodes  from  the  patient  cable  and  wash  under  
+running water. Do not scratch the electrodes and do not wash the leads box 
+and the patient socket. 
+- Patient cable: do not immerse in water, use a cloth dampened with alcohol 
+or an equivalent solvent. 
+Note: the  device  cannot  be  sterilized!  The  electrodes  can  be  sterilized  with  
+ethylene oxide. 
+11.2 Clean thermal head 
+To clean the printer thermal head correctly use a cloth slightly dampened with 
+alcohol or an equivalent solution with the device off. 
+Proceed as follows: 
+ open the paper feed; 
+ pass the cloth over the dots of the thermal head without pressing too hard. 
+Warning: the  printer  thermal  head  is  extremely  sensitive  to  electrostatic  
+potentials.  Do  not  touch  it  for  any  reason.  If  necessary,  handle  it  after  
+connecting to a ground via a suitable protective bracelet or belt. 
+11.3 Cleaning the paper feed roller 
+To clean the paper feed roller correctly, remove it and use a soft cloth lightly 
+dampened with alcohol or an equivalent solvent, turning the roller to clean the 
+whole surface. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 35/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+11.4 Cleaning the mark and paper sensor 
+To clean the mark sensor correctly use a cloth slightly dampened with alcohol 
+or an equivalent solution with the device off. 
+Proceed as follows: 
+ remove the paper feed; 
+ pass the cloth over mark sensor without pressing. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 36/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+12. Spare parts list 
+The code numbers of the spare parts are listed in table 12.1. 
+The  spare  part  code  is  also  indicated  on  the  label  identifying  the  main  
+subassemblies inside the device. 
+To order a spare part, use the corresponding code number. 
+ 
+Spare parts list of Ref 80608064R - AR2100VIEW ECG REC CARDIOLINE 
+Code Description 
+69701148  Fuse 5a Smf Slo-blo Smd (10 Pz) 
+69701360  Mains Socket 
+69701511  Battery Cover (white) 
+69701519  Paper Guide ar2100 Cardioline (white) 
+69701747  Fuse 1,6 At 
+69701756  Button On-off 
+69701757  Supply Board Ac/dc Ecm60us18 
+69701825  Battery Pack 12v 2100mah ar2100view  
+69701826  Keyboard Membrane ar2100view  
+69701827  User Interface Board ar2100view  
+69701828  Motherboard ar2100view  
+69701829  Usb Board ar2100view  
+69701830  Display Tft Lcd 480x272 4.3p ar2100view 
+69701831  Lower Case Complete ar2100view  
+69701832  Upper Case Complete ar2100view  
+69701833  Printer Complete ar2100view  
+69701856 Printer Complete ar2100view IIs, from SN: 0746.13.xx   
+Table 12.1 
+ 
+*The  replacement  of  the  motherboard  is  supplied  complete  with  firmware  in  
+English and basic option. 
+To reinstall the configuration before the replacement of the motherboard, the 
+following data must be supplied: 
+ device code number (REF) 
+ serial number (SN) 
+ language 
+ options purchased 
+Cardioline Spa will send a document with the activation code, which will install 
+the correct language and enable the options previously purchased. 
+ 
+Note: The data requested can be printed out directly by the instrument, using 
+the info function on the self-test menu. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 37/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+13. Interconnections with medical systems 
+The  device  has  a  Bluetooth  -  RS232 interface  to  communicate  with  a  PC  
+equipped with specific programmes, software cubeecg. 
+This type of connection guarantees the insulation required for connection with 
+medical systems. 
+The communication with a PC occurs through a proprietary protocol. 
+Cardioline  Spa  has  validated  the  following Bt interface devices for installation 
+on the usb port of a PC: 
+ Conceptronic Bluetooth 2.1 Usb, http://www.conceptronic.net
+ 
+ Conceptronic Bluetooth v2.1 USB 2.0 Nano Adapter 200m 
+Note: do  not  install  the  drivers  on  the  cd  rom  supplied  on  the  PC.  If  the  
+drivers should have been inadvertently installed, uninstall them. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 38/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+14.  Technical characteristics 
+A.C. mains power supply ........ Internal power supply 90-250V   47/63Hz 
+Maximum current absorbed ..... 500 mA a 115 V ~ ±10% 
+300 mA a 230 V ~ ±10% 
+Mains protection .................... Fuse: T 1,6 A 250 V 
+Internal power source ............ Rechargeable lead battery NiMH 10x1,2 Vdc; 
+2100 mAh 
+Internal power supply  
+protection ............................. Pico fuse SHF SLO-BLO T 5 A Littelfuse 
+Classification (EN60601-1) ...... Device class I 
+Applied part .......................... CF type 
+Class (93/42/EEC Directive) .... IIa 
+Defibrillation protection .......... Internal 
+Input dynamic ....................... ± 300 mV @ 0 Hz.± 10 mV in pass band 
+Input impedance ................... >100 MΩ on each electrode 
+Common mode rejection ......... >94 dB balanced electrode impedance 
+Frequency response ............... 0,05 ÷ 190 Hz (-3dB)  
+Time constant ....................... 3,3 s 
+Acquisition ............................ 12 bit; 1000 samples/s/channel printing; 500 
+samples/s/channel in calculation and filters; 
+Resolution (LSB) 5 μV/bit 
+Leads ................................... 12 leads Standard, Cabrera with quality control 
+of the electrodes connection. 
+Signal memory ...................... 10 seconds for each lead in auto isochronous 
+Recording sensitivity .............. Manual and automatic: 2,5 - 5 – 10 – 20 
+mm/mV ± 5%  
+Writing system ...................... Thermal printer 8 dot/mm 
+Usable print height 210 mm 
+Print format .......................... 3 / 6 / 12 / D3+1 / D3+3 / D6x2 / D12 
+Paper transport speed ............ 5 – 10 – 12,5 - 25 – 50 mm/s 
+Thermal paper ....................... Z-Fold pack: page 210x280mm *200FF, 
+gridded 
+Pacemaker recognition ........... Recognises pulse in accordance with current 
+IEC standards 
+Filters ................................... Mains interference: Modified digital notch filter 
+50–60 Hz linear phase 
+Anti-drift: Digital high-pass 0.5 Hz, linear 
+phase, always enabled 
+Muscular tremors: 3 frequencies: 20, 25 and 
+35 Hz. 
+Serial interface ...................... Bluetooth class I 
+Keyboard .............................. Capacitive with 47 keys 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 39/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+Display  ................................ Visualization 12 ECG channels, functional 
+parameters, HR (30 - 300), included contact 
+electrodes control signal. 
+Colour graphic LCD TFT 480x272 pixels, 
+display effective area 95 x 54 mm, led backlit 
+(4,3”) 
+Interpretation program ........... Parameter calculation (optional) 
+ECG interpretation (optional) 
+Type of use ........................... Continuous 
+Operating modes ................... Manual: acquisition and printing in real time 
+Automatic: simultaneous acquisition 
+PC-ECG: real-time acquisition with visualization 
+on PC (optional) 
+Paper Saving: acquisition and automatic 
+archive without printing 
+Battery capacity .................... Internal battery: 80 min. printing 6 channels 
+Recharging time .................... Internal battery: 10 hours 100% 
+Housing protection degree ...... IP 20 
+Dimensions ........................... 325 x 80 x 345 mm (length x height x depth) 
+Weight ................................. 3700 gr. without paper 
+Operation ambient conditions ..   Ambient temperature: from +10°C to +40°C 
+Relative humidity: from 25% to 95% (without 
+condensation) 
+Atmospheric pressure: from 700hPa to 1060 
+hPa 
+Transport and storage 
+ambient conditions ................. Ambient temperature: from -10°C to +40°C 
+Relative humidity: from 10% to 95% (without 
+condensation) 
+Atmospheric pressure: from 500 to 1060 hPa 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 40/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+15. APPENDIX A 
+15.1 Procedures   for   manipulating   and   storing   
+components (ESD)  
+All   modern   electronic   components,   particularly   those   based   on   CMOS   
+technology,   may   be   irreparably   damaged   by   even   modest   electrostatic   
+discharges. 
+Precautions must be taken against electrostatic discharges when handling and 
+working   on   electronic   components   sensitive   to   electrostatic   discharges.   
+ELECTROSTATIC SENSITIVE DEVICE (ESD). 
+Staff  involved  in  checking,  warehousing,  shipping  and  assembly  operations  
+must be earthed through a suitable conductive bracelet compliant with safety 
+standards. If this precaution cannot be taken, the operator must wear suitable 
+antistatic shoes or boots. 
+Work equipment must be earthed.  
+Tables,  work  surfaces  and  other  surfaces  on  which  components  are  handled  
+must be covered in conductive material and earthed. 
+All  tables  and  work  surfaces  must  be  covered  with  a  layer  of  conductive  
+material and earthed. 
+The  person  performing  the  repair  must  be  earthed  with  a  suitable  protective  
+bracelet compliant with safety regulations. The material must be contained in 
+suitable antistatic bags or containers, and labelled according to MIL STD 129J. 
+The  containers  must  guarantee  adequate  protection  against  impact  and  
+handling during transport. 
+All E.S.D.  components  must  be  stored  in  their  original  boxes  and  kept  in  
+special   metal   containers.   While   stored   in   the   warehouse,   electronic   
+components must be kept in their original packaging. 
+Any containers used must be exclusively in metal and/or conductive material. 
+If handled directly, the personnel must adopt the precautions specified above. 
+During handling cards must be stored in suitable antistatic containers. 
+Each  component  sensitive  to  electrostatic  discharges  will  be  identified  by  the  
+abbreviation ESD. 
+In the Warehouse area containers are labelled with a suitable symbol. 
+Follow   all   the   instructions   in   this   procedure   when   dealing   with   E.S.D.   
+components. 
+Warning: The manufacturer is not responsible for any damage to the device 
+caused by insufficient or inadequate treatment, handling or work methods. 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 41/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+16.  APPENDIX B  
+16.1 Figures and illustrated tables 
+T1 External view 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 42/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+T2 Internal view, fixing and particular of   Bluetooth adapter 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 43/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 44/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+T3 Writing system calibration 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 45/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 46/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+T4 Thermal head test point 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 47/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+Based  on  the  review  of  the  architecture  the  following  functional  blocks  are  
+characterized on the Main Board: 
+1. PSU 
+2. PAT_IN 
+3. LCD_INT 
+4. IN_OUT 
+5. CPU + MEM 
+6. PRINTER 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 48/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+White page 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 49/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+White page 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 50/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+White page 
+
+ 
+ 
+ 
+ 
+ar2100view 
+ 
+Service manual: sm_ar2100view_new_cardiolinespa_03_eng1.doc 51/51 
+Cardioline S.p.A. Via De Zinis, 6 38011 Cavareno (TN) Italia info@cardioline.it  www.cardioline.it 
+Sales office: Via F.lli Bronzetti, 8 20129 Milano (MI) Italy tel.+39 02 94750470 fax +39 02 94750471 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Via De Zinis, 6 
+38011 Cavareno (TN) 
+ITALY  
+e-mail: info@cardioline.it
+ 
+web: www.cardioline.it  
+ 
+ 
+ 
