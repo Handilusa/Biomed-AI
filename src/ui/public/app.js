@@ -62,7 +62,9 @@
       detail_document: 'Manual Document',
       detail_agent: 'Processing Agent',
       detail_metrics: 'Performance Metrics',
-      no_manuals_suggestions: 'Upload PDF manuals to see diagnostic suggestions.'
+      no_manuals_suggestions: 'Upload PDF manuals to see diagnostic suggestions.',
+      export_report: 'Export Report',
+      export_report_title: 'Export Diagnostic Report'
     },
     es: {
       disclaimer_banner: 'Herramienta de referencia de campo. Verifica siempre la lógica de servicio con especificaciones oficiales.',
@@ -118,7 +120,9 @@
       detail_document: 'Manual / Documento',
       detail_agent: 'Agente de Procesamiento',
       detail_metrics: 'Métricas de Rendimiento',
-      no_manuals_suggestions: 'Sube manuales en PDF para ver sugerencias de diagnóstico.'
+      no_manuals_suggestions: 'Sube manuales en PDF para ver sugerencias de diagnóstico.',
+      export_report: 'Exportar Reporte',
+      export_report_title: 'Exportar Reporte de Diagnóstico'
     },
   };
 
@@ -1518,25 +1522,175 @@
       body.appendChild(discEl);
     }
 
-    // Add Correction Button
+    // Add Action Buttons (Export Report + Correct AI)
     if (query) {
-      const correctionBtnContainer = document.createElement('div');
-      correctionBtnContainer.className = 'flex justify-end mt-sm pt-sm border-t border-outline-variant/10';
-      correctionBtnContainer.innerHTML = `
+      const actionBtnContainer = document.createElement('div');
+      actionBtnContainer.className = 'flex justify-end gap-2 mt-sm pt-sm border-t border-outline-variant/10';
+      actionBtnContainer.innerHTML = `
+        <button class="btn-export-report" data-i18n-title="export_report_title" title="${t('export_report_title')}">
+          <span class="material-symbols-outlined">download</span> <span data-i18n="export_report">${t('export_report')}</span>
+        </button>
         <button class="btn-correct-ai flex items-center gap-1 text-[10px] font-label-mono text-secondary hover:text-primary transition-colors cursor-pointer" 
                 data-query="${escapeHtml(query)}" 
                 data-response="${escapeHtml(visibleFinalText)}">
           <span class="material-symbols-outlined text-[14px]">edit_note</span> Correct AI Diagnosis
         </button>
       `;
-      body.appendChild(correctionBtnContainer);
+      body.appendChild(actionBtnContainer);
       
-      correctionBtnContainer.querySelector('.btn-correct-ai').addEventListener('click', (e) => {
+      actionBtnContainer.querySelector('.btn-export-report').addEventListener('click', () => {
+        downloadDiagnosticReport({
+          query,
+          triageCategory,
+          finalDisposition,
+          instructions: visibleFinalText,
+          reasoningSummary: reasoningSummary || '',
+          evidenceUsed,
+          sources,
+          stats,
+          disclaimers,
+          selectedDocument: documentSelect ? documentSelect.options[documentSelect.selectedIndex]?.text : '',
+          agentLabel,
+          timestamp: new Date().toISOString()
+        });
+      });
+
+      actionBtnContainer.querySelector('.btn-correct-ai').addEventListener('click', (e) => {
         const queryText = e.currentTarget.getAttribute('data-query');
         const responseText = e.currentTarget.getAttribute('data-response');
         openCorrectionModal(queryText, responseText);
       });
     }
+  }
+
+  // ────────────────────────────────────────────
+  // Export Diagnostic Report
+  // ────────────────────────────────────────────
+  function generateDiagnosticReportHTML(reportData) {
+    const {
+      query = '',
+      triageCategory = '',
+      finalDisposition = '',
+      instructions = '',
+      reasoningSummary = '',
+      evidenceUsed = [],
+      sources = [],
+      stats = null,
+      disclaimers = [],
+      selectedDocument = '',
+      agentLabel = 'Biomed Field Copilot',
+      timestamp = new Date().toISOString()
+    } = reportData;
+
+    const ts = new Date(timestamp);
+    const dateStr = ts.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const techName = localStorage.getItem('biomed_profile_name') || 'Field Technician';
+    const dispText = getFriendlyDisposition(finalDisposition, 'en');
+    const triageDisplay = triageCategory ? triageCategory.replace(/_/g, ' ').toUpperCase() : 'N/A';
+
+    let evidenceHtml = '';
+    if (Array.isArray(evidenceUsed) && evidenceUsed.length > 0) {
+      evidenceUsed.forEach((ev, i) => {
+        const evText = typeof ev === 'string' ? ev : (ev.text || ev.content || JSON.stringify(ev));
+        const evSource = typeof ev === 'object' ? (ev.source || ev.document || '') : '';
+        evidenceHtml += '<div style="background:#1a2332;border:1px solid #2a3a4a;border-radius:6px;padding:12px;margin-bottom:8px;">';
+        evidenceHtml += '<div style="font-size:10px;color:#57f1db;font-weight:600;margin-bottom:4px;">EVIDENCE #' + (i + 1) + (evSource ? ' — ' + evSource : '') + '</div>';
+        evidenceHtml += '<div style="font-size:12px;color:#c5d0cc;line-height:1.5;white-space:pre-wrap;">' + evText.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+        evidenceHtml += '</div>';
+      });
+    } else if (typeof evidenceUsed === 'string' && evidenceUsed) {
+      evidenceHtml = '<div style="background:#1a2332;border:1px solid #2a3a4a;border-radius:6px;padding:12px;"><div style="font-size:12px;color:#c5d0cc;line-height:1.5;">' + evidenceUsed.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>';
+    }
+
+    let sourcesHtml = '';
+    if (sources && sources.length > 0) {
+      sourcesHtml = '<div style="margin-top:8px;">';
+      sources.forEach((src, i) => {
+        const name = typeof src === 'string' ? src : (src.document || src.name || src.filename || 'Source ' + (i + 1));
+        const page = typeof src === 'object' ? (src.page || src.chunk_index || '') : '';
+        sourcesHtml += '<span style="display:inline-block;background:#152031;border:1px solid #2a3a4a;border-radius:4px;padding:3px 8px;margin:2px 4px 2px 0;font-size:10px;color:#859490;">' + name + (page ? ' (p.' + page + ')' : '') + '</span>';
+      });
+      sourcesHtml += '</div>';
+    }
+
+    let statsHtml = '';
+    if (stats) {
+      statsHtml = '<tr><td colspan="2" style="padding:12px 16px;border-bottom:1px solid #2a3a4a;">' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+        (stats.ttft_ms ? '<span style="font-size:10px;color:#859490;">TTFT: <strong style="color:#57f1db;">' + Math.round(stats.ttft_ms) + 'ms</strong></span>' : '') +
+        (stats.tokens_per_second ? '<span style="font-size:10px;color:#859490;">Speed: <strong style="color:#57f1db;">' + stats.tokens_per_second.toFixed(1) + ' tok/s</strong></span>' : '') +
+        (stats.completion_tokens ? '<span style="font-size:10px;color:#859490;">Tokens: <strong style="color:#57f1db;">' + stats.completion_tokens + '</strong></span>' : '') +
+        (stats.total_time_ms ? '<span style="font-size:10px;color:#859490;">Total: <strong style="color:#57f1db;">' + (stats.total_time_ms / 1000).toFixed(1) + 's</strong></span>' : '') +
+        '</div></td></tr>';
+    }
+
+    let disclaimersHtml = '';
+    if (disclaimers && disclaimers.length > 0) {
+      disclaimers.forEach(d => {
+        const isWarning = d.includes('SAFETY') || d.includes('WARNING') || d.includes('ADVERTENCIA');
+        disclaimersHtml += '<div style="background:' + (isWarning ? 'rgba(255,180,171,0.08)' : 'rgba(87,241,219,0.05)') + ';border:1px solid ' + (isWarning ? 'rgba(255,180,171,0.2)' : 'rgba(87,241,219,0.15)') + ';border-radius:6px;padding:10px 14px;margin-bottom:6px;font-size:11px;color:' + (isWarning ? '#ffb4ab' : '#bacac5') + ';line-height:1.5;">' + d.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+      });
+    }
+
+    const cleanInstructions = instructions.replace(/<[^>]*>/g, '').trim();
+
+    return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+      '<title>Diagnostic Report - ' + dateStr + '</title>' +
+      '<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0f1a;color:#e0e6e3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:32px;line-height:1.6}' +
+      '.container{max-width:800px;margin:0 auto;background:#111827;border:1px solid #1e2d3d;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4)}' +
+      '.header{background:linear-gradient(135deg,#0d1b2a 0%,#152031 100%);padding:32px;border-bottom:1px solid #1e2d3d}' +
+      '.header h1{font-size:18px;font-weight:700;color:#57f1db;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px}' +
+      '.header .subtitle{font-size:12px;color:#859490;letter-spacing:0.08em}' +
+      '.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}' +
+      '.badge-triage{background:rgba(87,241,219,0.12);color:#57f1db;border:1px solid rgba(87,241,219,0.3)}' +
+      '.badge-disp{background:rgba(216,227,251,0.1);color:#d8e3fb;border:1px solid rgba(216,227,251,0.25)}' +
+      '.section{padding:20px 24px;border-bottom:1px solid #1e2d3d}' +
+      '.section-title{font-size:10px;font-weight:700;color:#57f1db;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}' +
+      '.section-title::before{content:"";display:inline-block;width:3px;height:14px;background:#57f1db;border-radius:2px}' +
+      '.meta-table{width:100%;border-collapse:collapse}' +
+      '.meta-table td{padding:8px 16px;font-size:12px;border-bottom:1px solid #1e2d3d}.meta-table td:first-child{color:#859490;width:140px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:0.06em}' +
+      '.instructions{font-size:13px;color:#c5d0cc;line-height:1.8;white-space:pre-wrap}' +
+      '.footer{padding:20px 24px;text-align:center;font-size:10px;color:#4a5568;border-top:1px solid #1e2d3d}' +
+      '@media print{body{background:#fff;color:#111;padding:16px}.container{box-shadow:none;border:1px solid #ddd;background:#fff}' +
+      '.header{background:#f8f9fa !important}.header h1{color:#0d6efd !important}.section-title{color:#0d6efd !important}' +
+      '.badge-triage,.badge-disp{border-color:#ddd !important;background:#f0f0f0 !important;color:#333 !important}' +
+      '.meta-table td{border-color:#ddd !important;color:#333 !important}.meta-table td:first-child{color:#666 !important}' +
+      '.instructions{color:#222 !important}.footer{color:#999 !important}}</style></head><body>' +
+      '<div class="container">' +
+      '<div class="header"><h1>Diagnostic Report</h1><div class="subtitle">MedPSY Edge Biomed Copilot &bull; ' + dateStr + '</div></div>' +
+      '<div class="section"><div class="section-title">Session Metadata</div>' +
+      '<table class="meta-table">' +
+      '<tr><td>Technician</td><td>' + techName + '</td></tr>' +
+      '<tr><td>Timestamp</td><td>' + dateStr + '</td></tr>' +
+      '<tr><td>Equipment Manual</td><td>' + (selectedDocument || 'General') + '</td></tr>' +
+      '<tr><td>Processing Agent</td><td>' + agentLabel + '</td></tr>' +
+      '<tr><td>Triage Category</td><td><span class="badge badge-triage">' + triageDisplay + '</span></td></tr>' +
+      '<tr><td>Disposition</td><td><span class="badge badge-disp">' + (dispText || finalDisposition || 'N/A') + '</span></td></tr>' +
+      statsHtml +
+      '</table></div>' +
+      '<div class="section"><div class="section-title">Technician Query</div>' +
+      '<div style="background:#0d1b2a;border:1px solid #1e2d3d;border-radius:8px;padding:14px 18px;font-size:13px;color:#d8e3fb;font-style:italic;line-height:1.6;">"' + query.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '"</div></div>' +
+      '<div class="section"><div class="section-title">Diagnostic Instructions</div><div class="instructions">' + cleanInstructions + '</div></div>' +
+      (reasoningSummary ? '<div class="section"><div class="section-title">Reasoning Summary</div><div style="font-size:12px;color:#bacac5;line-height:1.7;white-space:pre-wrap;">' + reasoningSummary.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>' : '') +
+      (evidenceHtml ? '<div class="section"><div class="section-title">Evidence Used</div>' + evidenceHtml + sourcesHtml + '</div>' : '') +
+      (disclaimersHtml ? '<div class="section"><div class="section-title">Disclaimers &amp; Safety Notes</div>' + disclaimersHtml + '</div>' : '') +
+      '<div class="footer">Generated by MedPSY Edge Biomed Copilot &bull; All AI processing performed locally &bull; Report ID: RPT-' + Date.now().toString(36).toUpperCase() + '</div>' +
+      '</div></body></html>';
+  }
+
+  function downloadDiagnosticReport(reportData) {
+    const html = generateDiagnosticReportHTML(reportData);
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date(reportData.timestamp || Date.now());
+    const dateSlug = ts.toISOString().slice(0, 16).replace(/[T:]/g, '-');
+    a.href = url;
+    a.download = 'diagnostic-report-' + dateSlug + '.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 
   // ────────────────────────────────────────────
@@ -3253,6 +3407,36 @@
         
         // Load session
         rerunSession(entry);
+      });
+    }
+
+    // Set export report button handler
+    const exportBtn = document.getElementById('session-detail-export-btn');
+    if (exportBtn) {
+      const newExportBtn = exportBtn.cloneNode(true);
+      exportBtn.parentNode.replaceChild(newExportBtn, exportBtn);
+
+      newExportBtn.addEventListener('click', () => {
+        const visibleText = entry.assistant_response ? sanitizeModelOutput(entry.assistant_response) : '';
+        downloadDiagnosticReport({
+          query: entry.query || '',
+          triageCategory: entry.triage_category || '',
+          finalDisposition: entry.final_disposition || '',
+          instructions: visibleText,
+          reasoningSummary: entry.reasoning_summary || entry.reasoningSummary || '',
+          evidenceUsed: entry.evidence_used || [],
+          sources: entry.sources || [],
+          stats: entry.total_time_ms ? {
+            ttft_ms: entry.ttft_ms,
+            tokens_per_second: entry.tokens_per_second,
+            completion_tokens: entry.completion_tokens,
+            total_time_ms: entry.total_time_ms
+          } : null,
+          disclaimers: entry.disclaimers || [],
+          selectedDocument: entry.selected_document || '',
+          agentLabel: entry.agent || 'Biomed Field Copilot',
+          timestamp: entry.timestamp || new Date().toISOString()
+        });
       });
     }
 

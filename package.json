@@ -1,6 +1,6 @@
 {
   "name": "edge-medtech-copilot",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "100% local multi-agent AI assistant for biomedical equipment technicians, powered by QVAC MedPsy models",
   "type": "module",
   "license": "Apache-2.0",

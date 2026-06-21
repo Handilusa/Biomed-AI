@@ -23,7 +23,7 @@ import type { LogEntry, TriageCategory, FinalDisposition } from './types.js';
 
 async function main() {
   console.log('╔═══════════════════════════════════════════════════╗');
-  console.log('║       Biomed Field Copilot v1.3.0                ║');
+  console.log('║       Biomed Field Copilot v1.4.0                ║');
   console.log('║       100% Local AI • Powered by QVAC            ║');
   console.log('╚═══════════════════════════════════════════════════╝\n');
 

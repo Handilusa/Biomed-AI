@@ -695,5 +695,45 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transform: rotate(180deg);
 }
 
+/* ─── Export Report Button ─── */
+.btn-export-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(87, 241, 219, 0.25);
+  background: rgba(87, 241, 219, 0.06);
+  color: #bacac5;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-export-report:hover {
+  background: rgba(87, 241, 219, 0.14);
+  border-color: rgba(87, 241, 219, 0.5);
+  color: #57f1db;
+  box-shadow: 0 0 12px rgba(87, 241, 219, 0.12);
+}
+
+.btn-export-report:active {
+  transform: scale(0.97);
+}
+
+.btn-export-report .material-symbols-outlined {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.btn-export-report:hover .material-symbols-outlined {
+  transform: translateY(-1px);
+}
+
 
 

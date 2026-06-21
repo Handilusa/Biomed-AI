@@ -4,6 +4,17 @@ All notable changes to the **BioMed AI Copilot** project are documented in this 
 
 ---
 
+## [1.4.0] - 2026-06-21
+
+### Added
+- **Export Diagnostic Report Feature**: Implemented a self-contained, offline-first HTML report exporter. It formats technician query, triage category, extracted signals, confidence levels, step-by-step instructions, RAG citations, local execution performance metrics, safety disclaimers, and technician profiles into a premium design with inline styling.
+- **Ink-Saving PDF Optimization**: Included print-specific CSS (`@media print`) inside the report template for high-fidelity white-background PDF generation via the browser's native print/PDF export dialog.
+- **History Detail Modal Export Integration**: Added the "Export Report" button inside the historical session detail modal, parsing the stored telemetry and chat response history to reconstruct and download the report.
+- **Dynamic Localization (i18n) Support**: Added translations for `export_report` and `export_report_title` in English and Spanish, and integrated `data-i18n` attributes to translate report export actions instantly when the user toggles the UI language.
+
+### Fixed
+- **Dev Server Startup Port Locks**: Resolved startup crashes caused by database locked file descriptors and port 3000 conflicts.
+
 ## [1.3.0] - 2026-06-21
 
 ### Added
