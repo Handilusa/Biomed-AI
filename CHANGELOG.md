@@ -4,6 +4,20 @@ All notable changes to the **BioMed AI Copilot** project are documented in this 
 
 ---
 
+## [1.2.0] - 2026-06-21
+
+### Added
+- **Defibrillator Specific Keyword Rules**: Added 8 regex patterns in [triage.ts](file:///c:/Users/Handi/Desktop/MedPSY/src/agents/triage.ts) to intercept defibrillator electrode, impedance, and shock queries and classify them deterministically as `wiring_connector` prior to LLM execution.
+- **Post-Triage Consistency Validator**: Integrated a post-processing consistency guardrail (`validateTriageConsistency`) in [triage.ts](file:///c:/Users/Handi/Desktop/MedPSY/src/agents/triage.ts) that cross-references LLM outputs and query terminology to prevent contradictions and misclassifications (e.g. overriding `internal_module` to `wiring_connector` if external components are mentioned).
+- **Disambiguation Prompts**: Added clear classification guidelines to system prompts in [prompts/triage.ts](file:///c:/Users/Handi/Desktop/MedPSY/src/prompts/triage.ts).
+- **Manual Evidence Warning Fallback**: Added custom style class `.diag-row__value--warning` in [style.css](file:///c:/Users/Handi/Desktop/MedPSY/src/ui/public/style.css) using the system red/coral warning color `#ffb4ab`.
+
+### Changed
+- **Suggested Query Paths Sanitization**: Cleaned up dynamic chips generation in [app.js](file:///c:/Users/Handi/Desktop/MedPSY/src/ui/public/app.js) using `.split(/[\\/]/).pop()` to strip folders like `manuals\` and extensions from suggestions and generated queries.
+
+### Fixed
+- **Evidence Panel Disappearance**: Fixed the `menu_bookEvidence` section disappearing when streaming finishes without finding relevant manual evidence. It now displays a clean warning alert indicating that the query was not found in the manuals and that the provided information is unverified.
+
 ## [1.1.0] - 2026-06-20
 
 ### Added
