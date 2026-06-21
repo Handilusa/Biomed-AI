@@ -4,6 +4,20 @@ All notable changes to the **BioMed AI Copilot** project are documented in this 
 
 ---
 
+## [1.3.0] - 2026-06-21
+
+### Added
+- **Conversation Memory Integration**: Implemented a local, privacy-first, in-memory session tracking architecture (`SessionStore` with auto-TTL cleanup) to maintain multi-turn troubleshooting context for the MedPsy-4B model pipeline.
+- **Deterministic Metadata Summaries**: Formulate concise summaries (active equipment, RAG signals, last recommended dispositions) directly from turn metadata, saving token costs by avoiding extra LLM summarize runs.
+- **Context Budget Manager**: Dynamic token budget calculator (`buildMemoryContext`) using a character-to-token heuristic. It prioritizes history context and handles automatic truncation under tight limits so that the model never exceeds its 4K context constraint.
+- **Unit Test Suite**: Created a robust memory test suite (`test-memory.ts`) to verify session stores, sliding windows, metadata-based summaries, and budget limits.
+
+### Changed
+- **Pipeline Orchestration & Triage**: Updated the multi-agent `Orchestrator` to coordinate session context, providing context summaries to Triage classification (improving continuity for short/follow-up queries) and sliding windows to Service Logic.
+- **Optional Orchestrator Arguments**: Relaxed orchestrator instantiation parameters to allow fallback to a default memory store, preventing regressions in demo/safety scripts.
+- **Sidebar Padding Styling**: Added bottom-padding (`pb-md`) on the navigation container in `index.html` to improve visual layout spacing for the "Repair History" button.
+- **Visual Version Update**: Bumped the visual footer version and system versions to `v1.3.0` for the QVAC Hackathon.
+
 ## [1.2.0] - 2026-06-21
 
 ### Added

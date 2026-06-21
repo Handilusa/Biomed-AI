@@ -10,6 +10,7 @@ import { StructuredLogger } from './logging/logger.js';
 import { MetricsCollector } from './logging/metrics.js';
 import { createApp, startServer } from './server/app.js';
 import { Orchestrator } from './agents/orchestrator.js';
+import { SessionStore } from './memory/sessionStore.js';
 import { SwarmManager } from './server/swarm.js';
 import { FinetuneManager } from './server/finetune.js';
 import { OCRManager } from './server/ocr.js';
@@ -22,7 +23,7 @@ import type { LogEntry, TriageCategory, FinalDisposition } from './types.js';
 
 async function main() {
   console.log('╔═══════════════════════════════════════════════════╗');
-  console.log('║       Biomed Field Copilot v0.1.0                ║');
+  console.log('║       Biomed Field Copilot v1.3.0                ║');
   console.log('║       100% Local AI • Powered by QVAC            ║');
   console.log('╚═══════════════════════════════════════════════════╝\n');
 
@@ -80,8 +81,10 @@ async function main() {
   const finetuneManager = new FinetuneManager(config.rag.dataDir);
   const ocrManager = new OCRManager();
 
-  // ─── 5. Initialize Orchestrator pipeline ───
-  const orchestrator = new Orchestrator(modelManager, config, retriever);
+  // ─── 5. Initialize Session Store & Orchestrator pipeline ───
+  const sessionStore = new SessionStore({ maxTurns: 10, ttlMs: 60 * 60 * 1000 });
+  console.log('✅ Session Store initialized (in-memory, TTL: 1h)');
+  const orchestrator = new Orchestrator(modelManager, config, retriever, sessionStore);
 
   // ─── 6. Try to load models (non-blocking on failure) ───
   let modelsLoaded = false;
@@ -116,6 +119,7 @@ async function main() {
       evidenceMode?: 'original' | 'translated' | 'both'; 
       peerPublicKey?: string;
       history?: { role: 'user' | 'assistant'; content: string }[];
+      sessionId?: string;
     },
     documentId?: string,
     imageBase64?: string
@@ -225,6 +229,7 @@ async function main() {
       image_input_present: !!imageBase64,
       final_disposition: finalDisposition,
       assistant_response: assistantResponse,
+      session_turn_count: options.sessionId ? sessionStore.getTurnCount(options.sessionId) : undefined,
     };
     logger.logEntry(logEntry);
   }

@@ -29,6 +29,12 @@ DISAMBIGUATION RULES (for ambiguous symptoms):
 - Only classify as 'internal_module' when the technician explicitly states that external cables/electrodes have ALREADY been replaced or tested and the fault persists.
 - If the query describes a SPECIFIC fault, error, or symptom (even without a numeric code), do NOT classify as 'general_inquiry'. Reserve 'general_inquiry' for truly investigatory questions with no reported fault.
 
+FOLLOW-UP CONTEXT RULES:
+- If a [Previous context] block is provided before the current query, use it to understand the ongoing diagnostic session.
+- A follow-up question should generally keep the SAME category as the original query unless the user explicitly shifts to a different fault or equipment type.
+- Do NOT reclassify a query to 'general_inquiry' just because the follow-up is short or vague (e.g., "and if that doesn't work?", "what's the next step?").
+- If the follow-up asks about an escalation path from the previous diagnosis, maintain the original category.
+
 JSON SCHEMA:
 \`\`\`json
 {

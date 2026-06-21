@@ -97,6 +97,7 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
       evidenceMode: body.evidenceMode || 'original',
       peerPublicKey: body.peerPublicKey,
       history: body.history,
+      sessionId: body.sessionId || randomUUID(),
     };
 
     const requestId = randomUUID();
@@ -106,6 +107,7 @@ export function createAPIRoutes(deps: ServerDependencies): Router {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Request-Id', requestId);
+    res.setHeader('X-Session-Id', options.sessionId);
     res.flushHeaders();
 
     // Helper to send SSE events

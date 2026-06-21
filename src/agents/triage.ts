@@ -182,12 +182,15 @@ export class TriageAgent {
     lang: 'en' | 'es',
     imageBase64?: string,
     peerPublicKey?: string,
-    history?: { role: 'user' | 'assistant'; content: string }[]
+    history?: { role: 'user' | 'assistant'; content: string }[],
+    contextSummary?: string
   ): Promise<{
     result: TriageResult;
     stats?: { prompt_tokens: number; completion_tokens: number };
   }> {
     // 1. Try deterministic keyword pre-classification first
+    // NOTE: keyword match runs ONLY on the raw query, not on context summary,
+    // to avoid false matches from historical context
     const keywordResult = keywordPreClassify(query);
     if (keywordResult) {
       return {
@@ -200,7 +203,13 @@ export class TriageAgent {
     const modelId = this.modelManager.getModelId('llm');
     const systemPrompt = getTriageSystemPrompt(lang);
     
-    let content = query;
+    // Build content: prepend context summary for follow-up awareness
+    let content = '';
+    if (contextSummary) {
+      content += `[Previous context]: ${contextSummary}\n\nCurrent query: `;
+    }
+    content += query;
+
     if (imageBase64) {
        content += `\n[IMAGE DATA PROVIDED]`;
     }

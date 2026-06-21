@@ -161,6 +161,7 @@ export interface LogEntry {
   image_input_present?: boolean;
   final_disposition?: FinalDisposition;
   assistant_response?: string;
+  session_turn_count?: number;
 }
 
 // ────────────────────────────────────────────
@@ -232,7 +233,7 @@ export interface ChatRequest {
   documentId?: string;
   imageBase64?: string; // New field for OCR / Vision
   peerPublicKey?: string; // New field for P2P swarm delegated inference
-  history?: { role: 'user' | 'assistant'; content: string }[];
+  history?: { role: 'user' | 'assistant'; content: string }[]; // Legacy: frontend-provided history (overridden by server-side session memory)
 }
 
 export type SSEEventType =

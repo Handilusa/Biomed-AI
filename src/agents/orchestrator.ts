@@ -7,6 +7,8 @@ import { TriageAgent } from './triage.js';
 import { ManualEvidenceAgent } from './manualEvidence.js';
 import { ServiceLogicAgent } from './serviceLogic.js';
 import { ComplianceAgent } from './compliance.js';
+import { SessionStore } from '../memory/sessionStore.js';
+import { buildMemoryContext, estimateTokens } from '../memory/contextBudget.js';
 
 export class Orchestrator {
   private modelManager: ModelManager;
@@ -14,13 +16,15 @@ export class Orchestrator {
   private evidenceAgent: ManualEvidenceAgent;
   private serviceAgent: ServiceLogicAgent;
   private complianceAgent: ComplianceAgent;
+  private sessionStore: SessionStore;
 
-  constructor(modelManager: ModelManager, config: AppConfig, retriever: RAGRetriever) {
+  constructor(modelManager: ModelManager, config: AppConfig, retriever: RAGRetriever, sessionStore?: SessionStore) {
     this.modelManager = modelManager;
     this.triageAgent = new TriageAgent(modelManager, config);
     this.evidenceAgent = new ManualEvidenceAgent(retriever);
     this.serviceAgent = new ServiceLogicAgent(modelManager, config);
     this.complianceAgent = new ComplianceAgent(modelManager, config);
+    this.sessionStore = sessionStore || new SessionStore();
   }
 
   private detectLang(text: string): 'en' | 'es' {
@@ -37,7 +41,7 @@ export class Orchestrator {
   }
 
   private cleanSearchQuery(query: string): string {
-    let cleaned = query.replace(/manuals[\/\\][^\s]+/gi, '');
+    let cleaned = query.replace(/manuals[\\/\\\\][^\s]+/gi, '');
     cleaned = cleaned.replace(/\b[\w\-\.]+\.(pdf|md|txt)\b/gi, '');
     cleaned = cleaned.replace(/\.{2,}/g, '');
     return cleaned.trim();
@@ -180,6 +184,7 @@ export class Orchestrator {
       evidenceMode?: 'original' | 'translated' | 'both';
       peerPublicKey?: string;
       history?: { role: 'user' | 'assistant'; content: string }[];
+      sessionId?: string;
     },
     documentId?: string,
     imageBase64?: string
@@ -190,8 +195,54 @@ export class Orchestrator {
       ? this.detectLang(query) 
       : options.responseLanguage;
 
-    // 1. Triage Phase
-    const triageInfo = await this.triageAgent.run(query, targetLang, imageBase64, options.peerPublicKey, options.history);
+    // ─── 0. Session Memory Phase ───
+    const sessionId = options.sessionId;
+    let compressedSummary: string | null = null;
+    let memoryHistory: { role: 'user' | 'assistant'; content: string }[] = [];
+
+    if (sessionId) {
+      const session = this.sessionStore.getOrCreate(sessionId, documentId);
+      
+      if (session.turns.length > 0) {
+        // Build memory context within token budget
+        const summary = this.sessionStore.getCompressedContext(sessionId);
+        const windowTurns = this.sessionStore.getSlidingWindow(sessionId, 2);
+        
+        // Estimate system prompt + RAG tokens (conservative estimates)
+        // ServiceLogic system prompt is the largest at ~1500-2000 chars
+        const systemPromptTokens = 550; // ~1900 chars / 3.5
+        const ragTokens = 350; // ~1200 chars / 3.5 (5 chunks average)
+        
+        const memoryContext = buildMemoryContext(
+          summary,
+          windowTurns,
+          systemPromptTokens,
+          ragTokens,
+          4096,
+          800
+        );
+
+        compressedSummary = memoryContext.compressedSummary;
+        memoryHistory = memoryContext.slidingWindow;
+
+        if (memoryContext.hasHistory) {
+          console.log(`[Orchestrator] 🧠 Session ${sessionId}: ${session.turns.length} turns, memory=${memoryContext.totalTokensUsed} tokens`);
+        }
+      }
+
+      // Save the user turn immediately
+      this.sessionStore.addTurn(sessionId, {
+        role: 'user',
+        content: query,
+        timestamp: Date.now(),
+      });
+    }
+
+    // Use server-side memory history if available, otherwise fall back to frontend-provided history
+    const effectiveHistory = memoryHistory.length > 0 ? memoryHistory : (options.history || []);
+
+    // 1. Triage Phase — receives compressed summary for follow-up awareness
+    const triageInfo = await this.triageAgent.run(query, targetLang, imageBase64, options.peerPublicKey, effectiveHistory, compressedSummary ?? undefined);
     const triageResult = triageInfo.result;
     yield { type: 'triage', data: triageResult };
 
@@ -203,21 +254,35 @@ export class Orchestrator {
       const complianceResult = await this.complianceAgent.enforceClinicalBoundary(targetLang, options.peerPublicKey);
       yield { type: 'content_delta', data: { text: complianceResult.content } };
       yield { type: 'done', data: {} };
+
+      // Save assistant turn for clinical referral
+      if (sessionId) {
+        this.sessionStore.addTurn(sessionId, {
+          role: 'assistant',
+          content: complianceResult.content,
+          meta: {
+            triageCategory: triageResult.category,
+            extractedSignals: triageResult.extractedSignals,
+            finalDisposition: 'clinical_referral',
+            documentId,
+          },
+          timestamp: Date.now(),
+        });
+      }
       return;
     }
 
     if (!documentId) {
+      const noDocMsg = uiLang === 'es' ? 'Selecciona un manual de equipo para continuar.' : 'Select an equipment manual to continue.';
       yield { 
          type: 'content_delta', 
-         data: { 
-           text: uiLang === 'es' ? 'Selecciona un manual de equipo para continuar.' : 'Select an equipment manual to continue.' 
-         } 
+         data: { text: noDocMsg } 
       };
       yield { type: 'done', data: {} };
       return;
     }
 
-    // 2. Manual Evidence Phase
+    // 2. Manual Evidence Phase — RAG searches ONLY in manual, NOT in history
     // Clean the user query to remove file path noise and improve RAG embedding search quality
     const cleanedQuery = this.cleanSearchQuery(query);
     const searchQuery = triageResult.extractedSignals && triageResult.extractedSignals.length > 0 
@@ -240,8 +305,8 @@ export class Orchestrator {
 
     yield { type: 'rag_sources', data: { sources: evidence } };
 
-    // 3. Service Logic Phase
-    const serviceGen = this.serviceAgent.streamRun(triageResult.category, evidence, targetLang, query, options.peerPublicKey, options.history, isDeficient);
+    // 3. Service Logic Phase — receives full sliding window history for continuity
+    const serviceGen = this.serviceAgent.streamRun(triageResult.category, evidence, targetLang, query, options.peerPublicKey, effectiveHistory, isDeficient);
     let serviceContent = '';
     
     for await (const event of serviceGen) {
@@ -251,10 +316,30 @@ export class Orchestrator {
       yield event; // pass through
     }
 
-    // 4. Compliance & Safety Phase
+    // 4. Compliance & Safety Phase — does NOT see history (validates current output only)
     const complianceGen = this.complianceAgent.streamRun(serviceContent, targetLang, triageResult.category, query, evidence, options.peerPublicKey);
+    let finalDisposition: string | undefined;
     for await (const event of complianceGen) {
+      if (event.type === 'done') {
+        finalDisposition = (event.data as any).finalDisposition;
+      }
       yield event; // pass through
+    }
+
+    // ─── 5. Save Assistant Turn with Pipeline Metadata ───
+    if (sessionId) {
+      this.sessionStore.addTurn(sessionId, {
+        role: 'assistant',
+        content: serviceContent,
+        meta: {
+          triageCategory: triageResult.category,
+          extractedSignals: triageResult.extractedSignals,
+          finalDisposition: finalDisposition as any,
+          documentId,
+          ragChunksUsed: evidence.length,
+        },
+        timestamp: Date.now(),
+      });
     }
   }
 }
